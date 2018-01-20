@@ -1,4 +1,8 @@
 language: csharp
 solution: Smoll.sln
-install:
-  - nuget restore Smoll.sln
+mono: none
+dotnet: 2.1.3
+script:
+ - dotnet restore
+ - dotnet build
+ 
