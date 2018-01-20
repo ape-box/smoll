@@ -1,2 +1,4 @@
 language: csharp
 solution: Smoll.sln
+install:
+  - nuget restore Smoll.sln

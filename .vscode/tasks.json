@@ -7,7 +7,7 @@
         {
             "taskName": "build",
             "args": [
-                "${workspaceRoot}/Smoll.Api.Back/Smoll.Api.Back.csproj"
+                "${workspaceRoot}/Smoll.Api.Front/Smoll.Api.Front.csproj"
             ],
             "isBuildCommand": true,
             "problemMatcher": "$msCompile"
