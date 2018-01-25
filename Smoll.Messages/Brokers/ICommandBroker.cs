@@ -1,6 +1,6 @@
 ﻿using Smoll.Messages.Contracts;
 
-namespace Smoll.Api.Common.Brokers
+namespace Smoll.Messages.Brokers
 {
     public interface ICommandBroker
     {

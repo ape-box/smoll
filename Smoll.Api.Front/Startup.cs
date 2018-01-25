@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Smoll.Api.Common.Brokers;
 using Smoll.Api.Common.Controllers.Models.Validation;
 using Smoll.Data.Contexts;
 using Smoll.Data.Contracts;
@@ -74,8 +73,6 @@ namespace Smoll.Api.Front
 
         private void InitializeDIMappings(IServiceCollection services)
         {
-            services.AddTransient<ICommandBroker, CommandBroker>();
-            services.AddTransient<IAdminContext, AdminContext>();
             services.AddTransient<IQueryContext, QueryContext>();
             services.AddTransient<IVoteContext, VoteContext>();
         }

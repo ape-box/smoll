@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Smoll.Api.Common.Brokers;
 using Smoll.Api.Common.Controllers.Models.Validation;
 using Smoll.Data.Contexts;
 using Smoll.Data.Contracts;
@@ -14,6 +13,8 @@ using Smoll.Data.Models;
 
 namespace Smoll.Api.Back
 {
+    using Smoll.Messages.Brokers;
+
     public class Startup
     {
         public Startup(IConfiguration configuration)

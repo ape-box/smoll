@@ -1,12 +1,13 @@
 ﻿using System;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
-using Smoll.Api.Common.Brokers;
 using Smoll.Api.Back.Controllers.Models.Request;
 using Smoll.Messages.Commands;
 
 namespace Smoll.Api.Back.Controllers
 {
+    using Smoll.Messages.Brokers;
+
     [Route("api/v1/poll")]
     public class ApiPollController : Controller
     {
