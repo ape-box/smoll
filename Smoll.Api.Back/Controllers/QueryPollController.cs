@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Smoll.Data.Contracts;
-using Smoll.Data.Models;
 
 namespace Smoll.Api.Back.Controllers
 {
@@ -17,11 +16,17 @@ namespace Smoll.Api.Back.Controllers
         }
 
         [HttpGet]
-        public IEnumerable<PollModel> Get()
-            => queryContext.ReadAll();
+        public async Task<IActionResult> Get()
+        {
+            var model = queryContext.ReadAll();
+            return Ok(model);
+        }
 
         [HttpGet("{pollId}")]
-        public PollModel Get(Guid pollId)
-            => queryContext.Read(pollId);
+        public async Task<IActionResult> Get(Guid pollId)
+        {
+            var model = queryContext.Read(pollId);
+            return Ok(model);
+        }
     }
 }

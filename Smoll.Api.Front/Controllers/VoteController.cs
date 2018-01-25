@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Smoll.Data.Contracts;
 
@@ -15,7 +16,10 @@ namespace Smoll.Api.Front.Controllers
         }
 
         [HttpPut("{pollId}")]
-        public void Put(Guid pollId, int sequenceId)
-            => voteContext.Vote(pollId, sequenceId);
+        public async Task<IActionResult> Put(Guid pollId, int sequenceId)
+        {
+            voteContext.Vote(pollId, sequenceId);
+            return Ok();
+        }
     }
 }
