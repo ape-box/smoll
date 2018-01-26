@@ -18,15 +18,13 @@ namespace Smoll.Api.Back.Controllers
         [HttpGet]
         public async Task<IActionResult> Get()
         {
-            var model = queryContext.ReadAll();
-            return Ok(model);
+            return Ok();
         }
 
         [HttpGet("{pollId}")]
         public async Task<IActionResult> Get(Guid pollId)
         {
-            var model = queryContext.Read(pollId);
-            return Ok(model);
+            return Ok();
         }
     }
 }

@@ -18,7 +18,6 @@ namespace Smoll.Api.Front.Controllers
         [HttpPut("{pollId}")]
         public async Task<IActionResult> Put(Guid pollId, int sequenceId)
         {
-            voteContext.Vote(pollId, sequenceId);
             return Ok();
         }
     }

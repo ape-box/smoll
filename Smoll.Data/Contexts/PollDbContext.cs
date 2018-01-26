@@ -1,10 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using Microsoft.EntityFrameworkCore;
 using Smoll.Data.Models;
 
 namespace Smoll.Data.Contexts
 {
-    public abstract class PollDbContext
+    public abstract class PollDbContext : DbContext
     {
-        protected static IList<PollModel> PollModels { get; } = new List<PollModel>();
+        protected  virtual DbSet<PollModel> PollModels { get; set; }
+
+        protected PollDbContext(DbContextOptions<PollDbContext> options)
+        {
+        }
     }
 }

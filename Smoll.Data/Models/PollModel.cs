@@ -1,11 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Smoll.Data.Models
 {
-    public sealed class PollModel
+    public abstract class PollModel : CommonModel<Guid>
     {
-        public Guid PollId { get; set; }
-        public string Name { get; set; }
-        public PollOption[] PollOptions { get; set; }
+        public virtual IEnumerable<PollOption> Options { get; set; }
     }
 }
