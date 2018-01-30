@@ -1,16 +1,25 @@
 ﻿using System;
 using System.ComponentModel.DataAnnotations;
-using Smoll.Data.Entities;
 
-namespace Smoll.Data.Models
+namespace Smoll.Data.Entities
 {
-    public abstract class CommonModel<T> : Entity<T>, IPublishableEntity<T>
+    public interface IModifiablePublicationEntity : IModifiableEntity
     {
-        public string Name { get; set; }
+        PublishStatus Status { get; set; }
+        DateTime? PublishDate { get; set; }
+        DateTime? ExpireDate { get; set; }
+    }
 
-        [DataType(DataType.Html)]
-        public string Description { get; set; }
+    public interface IPublicationEntity : IModifiablePublicationEntity, IEntity
+    {
+    }
 
+    public interface IPublicationEntity<T> : IPublicationEntity, IEntity<T>
+    {
+    }
+
+    public abstract class PublicationEntity<T> : Entity<T>, IPublicationEntity<T>
+    {
         private PublishStatus? status;
         public PublishStatus Status
         {
@@ -23,7 +32,7 @@ namespace Smoll.Data.Models
         public DateTime? PublishDate
         {
             get => !publishDate.HasValue && Status == PublishStatus.Published
-                ? publishDate = DateTime.UtcNow
+                ? (publishDate = DateTime.UtcNow)
                 : publishDate;
             set => publishDate = value;
         }

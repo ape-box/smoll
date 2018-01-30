@@ -3,8 +3,10 @@ using Smoll.Data.Contracts;
 
 namespace Smoll.Data.Contexts
 {
-    public class AdminContext : PollDbContext, IAdminContext
+    public class AdminContext : DbContext, IAdminContext
     {
-        public AdminContext(DbContextOptions<PollDbContext> options) : base(options) { }
+        public AdminContext(DbContextOptions<AdminContext> options)
+        {
+        }
     }
 }

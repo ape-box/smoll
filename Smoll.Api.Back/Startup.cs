@@ -44,7 +44,7 @@ namespace Smoll.Api.Back
 
         private void InitializeDatabase(IServiceCollection services)
         {
-            var connectionString = Configuration.GetConnectionString("PollDbContext");
+            var connectionString = Configuration.GetConnectionString("ApplicationDbContext");
             services.AddEntityFrameworkNpgsql();
             services.AddDbContext<PollDbContext>(options => options.UseNpgsql(connectionString));
         }

@@ -12,6 +12,8 @@ using Smoll.Data.Contracts;
 
 namespace Smoll.Api.Front
 {
+    using Smoll.Data;
+
     public class Startup
     {
         public Startup(IConfiguration configuration)
@@ -24,7 +26,8 @@ namespace Smoll.Api.Front
         private void InitializeDIMappings(IServiceCollection services)
         {
             services.AddTransient<IQueryContext, QueryContext>();
-            services.AddTransient<IVoteContext, VoteContext>();
+            services.AddTransient<IQueryRepository, QueryRepository>();
+            //services.AddTransient<IVoteContext, VoteContext>();
         }
 
         private void InitializeMVC(IServiceCollection services)
@@ -41,15 +44,17 @@ namespace Smoll.Api.Front
 
         private void InitializeDatabase(IServiceCollection services)
         {
-            var connectionString = Configuration.GetConnectionString("PollDbContext");
+            var connectionString = Configuration.GetConnectionString("ApplicationDbContext");
             void ConfigureReadonly(DbContextOptionsBuilder options)
                 => options
                     .UseNpgsql(connectionString)
                     .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
 
+            Smoll.Data.Module.Setup();
+
             services.AddEntityFrameworkNpgsql();
             services.AddDbContext<QueryContext>(ConfigureReadonly);
-            services.AddDbContext<VoteContext>(ConfigureReadonly);
+            //services.AddDbContext<VoteContext>(ConfigureReadonly);
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.
@@ -57,11 +62,11 @@ namespace Smoll.Api.Front
         {
             services.AddAutoMapper();
 
-            InitializeDIMappings(services);
-
             InitializeMVC(services);
 
             InitializeDatabase(services);
+
+            InitializeDIMappings(services);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
