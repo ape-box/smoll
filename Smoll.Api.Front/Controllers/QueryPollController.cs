@@ -23,9 +23,15 @@ namespace Smoll.Api.Front.Controllers
         //    return Ok(models);
         //}
 
+        //[HttpGet]
+        //public async Task<IActionResult> Get(int? pageNumber, int? pageSize)
+        //    => Ok(await repository.GetOrderedPageAsync<Article>(
+        //        pageNumber ?? repository.DefaultPageNumber,
+        //        pageSize ?? repository.DefaultPageSize));
+
         [HttpGet]
-        public async Task<IActionResult> Get2(int? pageNumber, int? pageSize)
-            => Ok(await repository.GetOrderedPageAsync<Article>(
+        public IActionResult Get(int? pageNumber, int? pageSize)
+            => Ok(repository.GetOrderedPage<Article>(
                 pageNumber ?? repository.DefaultPageNumber,
                 pageSize ?? repository.DefaultPageSize));
 
