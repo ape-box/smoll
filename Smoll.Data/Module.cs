@@ -7,7 +7,8 @@ namespace Smoll.Data
     {
         public static void Setup()
         {
-            NpgsqlConnection.MapEnumGlobally<PublishStatus>();
+            // Not relying on postgresql enum types atm
+            //NpgsqlConnection.MapEnumGlobally<PublishStatus>();
         }
     }
 }

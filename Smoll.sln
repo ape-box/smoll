@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2010
+VisualStudioVersion = 15.0.27130.2026
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smoll.Api.Front", "Smoll.Api.Front\Smoll.Api.Front.csproj", "{3C8C3905-6214-433B-9802-479EA407F9B3}"
 EndProject
@@ -9,9 +9,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smoll.Messages", "Smoll.Mes
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smoll.Data", "Smoll.Data\Smoll.Data.csproj", "{A65352A4-7506-46C2-AE42-51170A1A4F8C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Smoll.Api.Back", "Smoll.Api.Back\Smoll.Api.Back.csproj", "{C0C36B20-F357-4A28-8F5B-A8C1CCDA62EC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smoll.Api.Back", "Smoll.Api.Back\Smoll.Api.Back.csproj", "{C0C36B20-F357-4A28-8F5B-A8C1CCDA62EC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Smoll.Api.Common", "Smoll.Api.Common\Smoll.Api.Common.csproj", "{E54ED06E-C29B-48B1-AFC0-35B951C24D69}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smoll.Api.Common", "Smoll.Api.Common\Smoll.Api.Common.csproj", "{E54ED06E-C29B-48B1-AFC0-35B951C24D69}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Smoll.Data.Pgsql", "Smoll.Data.Pgsql\Smoll.Data.Pgsql.csproj", "{64E47DC5-663E-46EF-B4BC-1C79665782FA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Smoll.Data.Couch", "Smoll.Data.Couch\Smoll.Data.Couch.csproj", "{2EE0971A-63CC-4211-A747-56F948E79499}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +43,14 @@ Global
 		{E54ED06E-C29B-48B1-AFC0-35B951C24D69}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E54ED06E-C29B-48B1-AFC0-35B951C24D69}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E54ED06E-C29B-48B1-AFC0-35B951C24D69}.Release|Any CPU.Build.0 = Release|Any CPU
+		{64E47DC5-663E-46EF-B4BC-1C79665782FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{64E47DC5-663E-46EF-B4BC-1C79665782FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{64E47DC5-663E-46EF-B4BC-1C79665782FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{64E47DC5-663E-46EF-B4BC-1C79665782FA}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2EE0971A-63CC-4211-A747-56F948E79499}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2EE0971A-63CC-4211-A747-56F948E79499}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2EE0971A-63CC-4211-A747-56F948E79499}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2EE0971A-63CC-4211-A747-56F948E79499}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

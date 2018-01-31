@@ -3,7 +3,7 @@
 -- DROP DATABASE smolldevelopment;
 
 CREATE DATABASE smolldevelopment
-    WITH 
+    WITH
     OWNER = smoll
     ENCODING = 'UTF8'
     LC_COLLATE = 'English_United Kingdom.1252'
@@ -29,7 +29,7 @@ CREATE TYPE public.publish_status AS ENUM
 ALTER TYPE public.publish_status
     OWNER TO postgres;
 
-	
+
 -- Table: public."Articles"
 
 -- DROP TABLE public."Articles";
@@ -43,7 +43,7 @@ CREATE TABLE public."Articles"
     "Description" character varying COLLATE pg_catalog."default",
     "Abstract" character varying COLLATE pg_catalog."default",
     "Content" character varying COLLATE pg_catalog."default",
-    "Status" publish_status,
+    "Status" integer,-- Enums are not working very well yet
     "PublishDate" timestamp without time zone,
     "ExpireDate" timestamp without time zone,
     "CreatedDate" timestamp without time zone,
