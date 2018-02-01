@@ -27,9 +27,9 @@ namespace Smoll.Data.Repositories
             => pageSize > 0 ? pageSize : DefaultPageSize;
 
         protected int PageNumberToSkip(int pageNumber, int normalizedPageSize)
-            => pageNumber > 0
-                ? pageNumber * normalizedPageSize
-                : DefaultPageNumber * normalizedPageSize;
+            => pageNumber > DefaultPageNumber
+                ? (pageNumber - DefaultPageNumber) * normalizedPageSize
+                : 0;
 
         protected  virtual IQueryable<TEntity> GetQueryable<TEntity>(
             Expression<Func<TEntity, bool>> filter = null,
@@ -39,22 +39,15 @@ namespace Smoll.Data.Repositories
             int? take = null)
             where TEntity : class, IEntity
         {
-            includeProperties = includeProperties ?? String.Empty;
-            IQueryable<TEntity> query = context.Set<TEntity>();
-
-            //var setMethod = typeof(DbContext).GetMethod(nameof(DbContext.Set)).MakeGenericMethod(typeof(TEntity));
-            //var query = (IQueryable<TEntity>)setMethod.Invoke(context, null);
+            includeProperties = includeProperties ?? string.Empty;
+            var query = context.Set<TEntity>() as IQueryable<TEntity>;
 
             if (filter != null)
             {
                 query = query.Where(filter);
             }
 
-            foreach (var includeProperty in includeProperties
-                .Split(PropertiesSeparators, StringSplitOptions.RemoveEmptyEntries))
-            {
-                query = query.Include(includeProperty);
-            }
+            query = includeProperties.Split(PropertiesSeparators, StringSplitOptions.RemoveEmptyEntries).Aggregate(query, (current, includeProperty) => current.Include(includeProperty));
 
             if (orderBy != null)
             {
@@ -114,11 +107,11 @@ namespace Smoll.Data.Repositories
             where TEntity : class, IEntity
         => GetQueryable(filter, null, includeProperties).SingleOrDefault();
 
-        public virtual async Task<TEntity> GetOneAsync<TEntity>(
+        public virtual Task<TEntity> GetOneAsync<TEntity>(
             Expression<Func<TEntity, bool>> filter = null,
             string includeProperties = null)
             where TEntity : class, IEntity
-        => await GetQueryable(filter, null, includeProperties).SingleOrDefaultAsync();
+        => GetQueryable(filter, null, includeProperties).SingleOrDefaultAsync();
 
         public virtual TEntity GetFirst<TEntity>(
             Expression<Func<TEntity, bool>> filter = null,
@@ -127,35 +120,35 @@ namespace Smoll.Data.Repositories
             where TEntity : class, IEntity
         => GetQueryable(filter, orderBy, includeProperties).FirstOrDefault();
 
-        public virtual async Task<TEntity> GetFirstAsync<TEntity>(
+        public virtual Task<TEntity> GetFirstAsync<TEntity>(
             Expression<Func<TEntity, bool>> filter = null,
             Func<IQueryable<TEntity>, IOrderedQueryable<TEntity>> orderBy = null,
             string includeProperties = null)
             where TEntity : class, IEntity
-        => await GetQueryable(filter, orderBy, includeProperties).FirstOrDefaultAsync();
+        => GetQueryable(filter, orderBy, includeProperties).FirstOrDefaultAsync();
 
         public virtual TEntity GetById<TEntity>(object id)
             where TEntity : class, IEntity
         => context.Set<TEntity>().Find(id);
 
-        public virtual async Task<TEntity> GetByIdAsync<TEntity>(object id)
+        public virtual Task<TEntity> GetByIdAsync<TEntity>(object id)
             where TEntity : class, IEntity
-        => await context.Set<TEntity>().FindAsync(id);
+        => context.Set<TEntity>().FindAsync(id);
 
         public virtual int GetCount<TEntity>(Expression<Func<TEntity, bool>> filter = null)
             where TEntity : class, IEntity
         => GetQueryable(filter).Count();
 
-        public virtual async Task<int> GetCountAsync<TEntity>(Expression<Func<TEntity, bool>> filter = null)
+        public virtual Task<int> GetCountAsync<TEntity>(Expression<Func<TEntity, bool>> filter = null)
             where TEntity : class, IEntity
-        => await GetQueryable(filter).CountAsync();
+        => GetQueryable(filter).CountAsync();
 
         public virtual bool GetExists<TEntity>(Expression<Func<TEntity, bool>> filter = null)
             where TEntity : class, IEntity
         => GetQueryable(filter).Any();
 
-        public virtual async Task<bool> GetExistsAsync<TEntity>(Expression<Func<TEntity, bool>> filter = null)
+        public virtual Task<bool> GetExistsAsync<TEntity>(Expression<Func<TEntity, bool>> filter = null)
             where TEntity : class, IEntity
-        => await GetQueryable(filter).AnyAsync();
+        => GetQueryable(filter).AnyAsync();
     }
 }

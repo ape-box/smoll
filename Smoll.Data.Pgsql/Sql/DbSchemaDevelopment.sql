@@ -60,3 +60,36 @@ TABLESPACE pg_default;
 
 ALTER TABLE public."Articles"
     OWNER to smoll;
+
+
+
+
+
+-- Table: public."Polls"
+
+-- DROP TABLE public."Polls";
+
+CREATE TABLE public."Polls"
+(
+    "Id" uuid NOT NULL DEFAULT uuid_generate_v4(),
+    "Title" character varying COLLATE pg_catalog."default",
+    "Description" character varying COLLATE pg_catalog."default",
+    "ImageUrl" character varying COLLATE pg_catalog."default",
+    "Status" integer,-- Enums are not working very well yet
+    "PublishDate" timestamp without time zone,
+    "ExpireDate" timestamp without time zone,
+    "CreatedDate" timestamp without time zone,
+    "ModifiedDate" timestamp without time zone,
+    "CreatedBy" character varying COLLATE pg_catalog."default",
+    "ModifiedBy" character varying COLLATE pg_catalog."default",
+    "Version" bytea,
+    CONSTRAINT "Polls_pkey" PRIMARY KEY ("Id")
+)
+WITH (
+    OIDS = FALSE
+)
+TABLESPACE pg_default;
+
+ALTER TABLE public."Polls"
+    OWNER to smoll;
+

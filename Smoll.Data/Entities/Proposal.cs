@@ -2,20 +2,11 @@
 
 namespace Smoll.Data.Entities
 {
-    public interface IModifiableProposalEntity : IModifiablePublicationEntity
-    {
-        string Title { get; set; }
-        string Slug { get; set; }
-        string Description { get; set; }
-        string Abstract { get; set; }
-        string Content { get; set; }
-    }
-
-    public interface IProposalEntity : IModifiableProposalEntity, IPublicationEntity
+    public interface IProposalEntity : IPublicationEntity
     {
     }
 
-    public interface IProposalEntity<T> : IModifiableProposalEntity, IPublicationEntity<T>
+    public interface IProposalEntity<T> : IPublicationEntity<T>
     {
     }
 

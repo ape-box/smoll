@@ -1,19 +1,13 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace Smoll.Data.Entities
 {
-    public interface IModifiablePollEntity : IModifiablePublicationEntity
-    {
-        string Title { get; set; }
-        string Description { get; set; }
-        string ImageUrl { get; set; }
-    }
-
-    public interface IPollEntity : IModifiablePollEntity, IPublicationEntity
+    public interface IPollEntity : IPublicationEntity
     {
     }
 
-    public interface IPollEntity<T> : IModifiablePollEntity, IPublicationEntity<T>
+    public interface IPollEntity<T> : IPublicationEntity<T>
     {
     }
 
@@ -26,6 +20,8 @@ namespace Smoll.Data.Entities
 
         [DataType(DataType.ImageUrl)]
         public string ImageUrl { get; set; }
+
+        public virtual IEnumerable<IEntityOption<object>> Options { get; set; }
     }
 
 }

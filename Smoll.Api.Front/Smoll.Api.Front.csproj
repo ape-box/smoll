@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Smoll.Api.Common\Smoll.Api.Common.csproj" />
+    <ProjectReference Include="..\Smoll.Data.Pgsql\Smoll.Data.Pgsql.csproj" />
     <ProjectReference Include="..\Smoll.Data\Smoll.Data.csproj" />
     <ProjectReference Include="..\Smoll.Messages\Smoll.Messages.csproj" />
   </ItemGroup>

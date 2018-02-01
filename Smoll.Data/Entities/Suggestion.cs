@@ -3,18 +3,11 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Smoll.Data.Entities
 {
-    public interface IModifiableSuggestionEntity : IModifiablePublicationEntity
-    {
-        string Title { get; set; }
-        string Description { get; set; }
-        IEnumerable<IEntityOption<object>> Options { get; set; }
-    }
-
-    public interface ISuggestionEntity : IModifiableSuggestionEntity, IPublicationEntity
+    public interface ISuggestionEntity : IPublicationEntity
     {
     }
 
-    public interface ISuggestionEntity<T> : IModifiableSuggestionEntity, IPublicationEntity<T>
+    public interface ISuggestionEntity<T> : IPublicationEntity<T>
     {
     }
 

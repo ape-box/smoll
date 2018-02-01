@@ -4,11 +4,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Smoll.Data.Entities
 {
-    public interface IModifiableEntity
-    {
-    }
-
-    public interface IEntity : IModifiableEntity
+    public interface IEntity
     {
         object Id { get; set; }
         DateTime CreatedDate { get; set; }

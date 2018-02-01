@@ -2,18 +2,11 @@
 
 namespace Smoll.Data.Entities
 {
-    public interface IModifiableEntityOption : IModifiableEntity
-    {
-        int SequenceId { get; set; }
-        string DisplayName { get; set; }
-        string Details { get; set; }
-    }
-
-    public interface IEntityOption : IModifiableEntityOption, IEntity
+    public interface IEntityOption : IEntity
     {
     }
 
-    public interface IEntityOption<T> : IModifiableEntityOption, IEntity<T>
+    public interface IEntityOption<T> : IEntity<T>
     {
     }
 

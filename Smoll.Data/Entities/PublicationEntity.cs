@@ -3,15 +3,13 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Smoll.Data.Entities
 {
-    public interface IModifiablePublicationEntity : IModifiableEntity
+    public interface IPublicationEntity : IEntity
     {
         PublishStatus Status { get; set; }
-        DateTime? PublishDate { get; set; }
-        DateTime? ExpireDate { get; set; }
-    }
 
-    public interface IPublicationEntity : IModifiablePublicationEntity, IEntity
-    {
+        DateTime? PublishDate { get; set; }
+
+        DateTime? ExpireDate { get; set; }
     }
 
     public interface IPublicationEntity<T> : IPublicationEntity, IEntity<T>
