@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Smoll.Data.Entities;
+using Smoll.Data.Pgsql.Repositories;
 using Smoll.Data.Repositories;
 
 namespace Smoll.Api.Front.Models
 {
-    public interface IQueryRepository : IRepository
+    public interface IQueryRepository : IReadOnlyRepository
     {
         int DefaultPageNumber { get; }
         int DefaultPageSize { get; }
@@ -16,7 +17,7 @@ namespace Smoll.Api.Front.Models
             where TEntity : class, IPublicationEntity;
     }
 
-    public class QueryRepository : EntityFrameworkRepository<ApplicationContext>, IQueryRepository
+    public class QueryRepository : EntityFrameworkReadOnlyRepository<ApplicationContext>, IQueryRepository
     {
         public QueryRepository(ApplicationContext context)
             : base(context)

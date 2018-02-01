@@ -5,8 +5,9 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Smoll.Data.Entities;
+using Smoll.Data.Repositories;
 
-namespace Smoll.Data.Repositories
+namespace Smoll.Data.Pgsql.Repositories
 {
     public abstract class EntityFrameworkReadOnlyRepository<TContext> : IReadOnlyRepository
         where TContext : DbContext

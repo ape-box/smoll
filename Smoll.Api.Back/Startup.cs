@@ -3,10 +3,12 @@ using FluentValidation.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Smoll.Api.Back.Models;
 using Smoll.Api.Common.Controllers.Models.Validation;
-using Smoll.Messages.Brokers;
+//using Smoll.Messages.Brokers;
 
 namespace Smoll.Api.Back
 {
@@ -21,10 +23,8 @@ namespace Smoll.Api.Back
 
         private void InitializeDIMappings(IServiceCollection services)
         {
-            services.AddTransient<ICommandBroker, CommandBroker>();
-            //services.AddTransient<IAdminContext, AdminContext>();
-            //services.AddTransient<IQueryContext, QueryContext>();
-            //services.AddTransient<IVoteContext, VoteContext>();
+//            services.AddTransient<ICommandBroker, CommandBroker>();
+            services.AddTransient<IAdminRepository, AdminRepository>();
         }
 
         private void InitializeMVC(IServiceCollection services)
@@ -42,8 +42,13 @@ namespace Smoll.Api.Back
         private void InitializeDatabase(IServiceCollection services)
         {
             var connectionString = Configuration.GetConnectionString("ApplicationDbContext");
+            void ConfigureReadonly(DbContextOptionsBuilder options)
+                => options
+                    .UseNpgsql(connectionString)
+                    .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+
             services.AddEntityFrameworkNpgsql();
-            //services.AddDbContext<PollDbContext>(options => options.UseNpgsql(connectionString));
+            services.AddDbContext<ApplicationContext>(ConfigureReadonly);
         }
 
         // This method gets called by the runtime. Use this method to add services to the container.

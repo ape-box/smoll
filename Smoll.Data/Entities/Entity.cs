@@ -11,6 +11,8 @@ namespace Smoll.Data.Entities
         DateTime? ModifiedDate { get; set; }
         string CreatedBy { get; set; }
         string ModifiedBy { get; set; }
+        bool EntityModifiable { get; set; }
+        bool EntityVisible { get; set; }
         byte[] Version { get; set; }
     }
 
@@ -44,6 +46,10 @@ namespace Smoll.Data.Entities
         public string CreatedBy { get; set; }
 
         public string ModifiedBy { get; set; }
+        
+        public bool EntityModifiable { get; set; }
+        
+        public bool EntityVisible { get; set; }
 
         [Timestamp]
         public byte[] Version { get; set; }

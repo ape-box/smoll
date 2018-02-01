@@ -10,21 +10,21 @@ namespace Smoll.Api.Front.Controllers
     public class EntityQueryControllerBase<TEntity> : Controller
         where TEntity : class, IPublicationEntity
     {
-        private readonly IQueryRepository repository;
+        protected readonly IQueryRepository Repository;
 
         public EntityQueryControllerBase(IQueryRepository repository)
         {
-            this.repository = repository ?? throw new ArgumentNullException(nameof(repository));
+            this.Repository = repository ?? throw new ArgumentNullException(nameof(repository));
         }
 
         [HttpGet]
         public async Task<IActionResult> Get(int? pageNumber, int? pageSize)
-            => Ok(await repository.GetOrderedPageAsync<TEntity>(
-                pageNumber ?? repository.DefaultPageNumber,
-                pageSize ?? repository.DefaultPageSize));
+            => Ok(await Repository.GetOrderedPageAsync<TEntity>(
+                pageNumber ?? Repository.DefaultPageNumber,
+                pageSize ?? Repository.DefaultPageSize));
 
-        [HttpGet("{id}")]
+        [HttpGet("{id:guid}")]
         public async Task<IActionResult> Get(Guid id)
-            => Ok(await repository.GetByIdAsync<TEntity>(id));
+            => Ok(await Repository.GetByIdAsync<TEntity>(id));
     }
 }

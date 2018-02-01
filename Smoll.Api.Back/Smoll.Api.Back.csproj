@@ -1,14 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
-
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
     <TargetFramework>netcoreapp2.0</TargetFramework>
   </PropertyGroup>
-
   <ItemGroup>
-    <Folder Include="Contexts\" />
     <Folder Include="wwwroot\" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="Autofac" Version="4.6.2" />
     <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="3.2.0" />
@@ -16,15 +12,13 @@
     <PackageReference Include="Microsoft.AspNetCore.All" Version="2.0.5" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="2.0.1" />
   </ItemGroup>
-
   <ItemGroup>
     <DotNetCliToolReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Tools" Version="2.0.1" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\Smoll.Api.Common\Smoll.Api.Common.csproj" />
+    <ProjectReference Include="..\Smoll.Data.Pgsql\Smoll.Data.Pgsql.csproj" />
     <ProjectReference Include="..\Smoll.Data\Smoll.Data.csproj" />
     <ProjectReference Include="..\Smoll.Messages\Smoll.Messages.csproj" />
   </ItemGroup>
-
 </Project>
