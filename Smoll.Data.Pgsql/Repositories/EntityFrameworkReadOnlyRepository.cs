@@ -24,10 +24,10 @@ namespace Smoll.Data.Pgsql.Repositories
             this.context = context;
         }
 
-        protected int NormalizePageSize(int pageSize)
+        protected static int NormalizePageSize(int pageSize)
             => pageSize > 0 ? pageSize : DefaultPageSize;
 
-        protected int PageNumberToSkip(int pageNumber, int normalizedPageSize)
+        protected static int PageNumberToSkip(int pageNumber, int normalizedPageSize)
             => pageNumber > DefaultPageNumber
                 ? (pageNumber - DefaultPageNumber) * normalizedPageSize
                 : 0;

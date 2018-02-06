@@ -46,9 +46,9 @@ namespace Smoll.Data.Entities
         public string CreatedBy { get; set; }
 
         public string ModifiedBy { get; set; }
-        
+
         public bool EntityModifiable { get; set; }
-        
+
         public bool EntityVisible { get; set; }
 
         [Timestamp]

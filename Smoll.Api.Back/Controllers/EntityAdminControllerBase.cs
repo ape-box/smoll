@@ -3,11 +3,12 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Smoll.Api.Back.Models;
 using Smoll.Data.Entities;
+using Smoll.Api.Common.Controllers.Extensions;
 
 namespace Smoll.Api.Back.Controllers
 {
     [Route("api/v1/[controller]")]
-    public class EntityAdminControllerBase<TEntity> : Controller
+    public abstract class EntityAdminControllerBase<TEntity> : Controller
         where TEntity : class, IPublicationEntity
     {
         protected readonly IAdminRepository Repository;
@@ -20,8 +21,7 @@ namespace Smoll.Api.Back.Controllers
         [HttpGet]
         public async Task<IActionResult> Get(int? pageNumber, int? pageSize)
             => Ok(await Repository.GetOrderedPageAsync<TEntity>(
-                pageNumber ?? Repository.DefaultPageNumber,
-                pageSize ?? Repository.DefaultPageSize));
+                this.RestrictPagination(pageNumber, pageSize)));
 
         [HttpGet("{id:guid}")]
         public async Task<IActionResult> Get(Guid id)
@@ -31,11 +31,11 @@ namespace Smoll.Api.Back.Controllers
         public async Task<IActionResult> Post([FromBody]TEntity model)
             => Ok(await Repository.Create(model, "Placeholder").SaveAsync());
 
-        [HttpPut("{id:guid")]
+        [HttpPut("{id:guid}")]
         public async Task<IActionResult> Put(Guid id, [FromBody]TEntity model)
             => Ok(await Repository.Update(id, model, "Placeholder").SaveAsync());
 
-        [HttpDelete("{id:guid")]
+        [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Delete(Guid id)
             => Ok(await Repository.DisableEntity<TEntity>(id, "Placeholder").SaveAsync());
 

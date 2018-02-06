@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Smoll.Api.Common.Controllers.Extensions;
 using Smoll.Api.Front.Models;
 using Smoll.Data.Entities;
 
@@ -20,8 +21,7 @@ namespace Smoll.Api.Front.Controllers
         [HttpGet]
         public async Task<IActionResult> Get(int? pageNumber, int? pageSize)
             => Ok(await Repository.GetOrderedPageAsync<TEntity>(
-                pageNumber ?? Repository.DefaultPageNumber,
-                pageSize ?? Repository.DefaultPageSize));
+                this.RestrictPagination(pageNumber, pageSize)));
 
         [HttpGet("{id:guid}")]
         public async Task<IActionResult> Get(Guid id)

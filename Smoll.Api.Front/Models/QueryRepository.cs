@@ -10,10 +10,7 @@ namespace Smoll.Api.Front.Models
 {
     public interface IQueryRepository : IReadOnlyRepository
     {
-        int DefaultPageNumber { get; }
-        int DefaultPageSize { get; }
-
-        Task<IEnumerable<TEntity>> GetOrderedPageAsync<TEntity>(int pageNumber, int pageSize)
+        Task<IEnumerable<TEntity>> GetOrderedPageAsync<TEntity>((int? pageNumber, int? pageSize) pagination)
             where TEntity : class, IPublicationEntity;
     }
 
@@ -24,11 +21,7 @@ namespace Smoll.Api.Front.Models
         {
         }
 
-        int IQueryRepository.DefaultPageNumber => DefaultPageNumber;
-
-        int IQueryRepository.DefaultPageSize => DefaultPageSize;
-
-        public Task<IEnumerable<TEntity>> GetOrderedPageAsync<TEntity>(int pageNumber = DefaultPageNumber, int pageSize = DefaultPageSize)
+        public Task<IEnumerable<TEntity>> GetOrderedPageAsync<TEntity>((int? pageNumber, int? pageSize) pagination)
             where TEntity : class, IPublicationEntity
             => GetAsync<TEntity>(
                 filter: t => t.Status == PublishStatus.Published
@@ -36,7 +29,7 @@ namespace Smoll.Api.Front.Models
                     && t.ExpireDate >= DateTime.UtcNow,
                 orderBy: dbSet => dbSet.OrderBy(t => t.PublishDate),
                 includeProperties: null,
-                skip: PageNumberToSkip(pageNumber, NormalizePageSize(pageSize)),
-                take: NormalizePageSize(pageSize));
+                skip: PageNumberToSkip(pagination.pageNumber ?? DefaultPageNumber, NormalizePageSize(pagination.pageSize ?? DefaultPageSize)),
+                take: NormalizePageSize(pagination.pageSize ?? DefaultPageSize));
     }
 }

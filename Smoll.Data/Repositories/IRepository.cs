@@ -16,16 +16,16 @@ namespace Smoll.Data.Repositories
 
         IRepository Delete<TEntity>(TEntity entity)
             where TEntity : class, IEntity;
-        
+
         IRepository DisableEntity<TEntity>(object id, string modifiedBy = null)
             where TEntity : class, IEntity;
-        
+
         IRepository DisableEntity<TEntity>(TEntity entity, string modifiedBy = null)
             where TEntity : class, IEntity;
-        
+
         IRepository HideEndity<TEntity>(object id, string modifiedBy = null)
             where TEntity : class, IEntity;
-        
+
         IRepository HideEndity<TEntity>(TEntity entity, string modifiedBy = null)
             where TEntity : class, IEntity;
 

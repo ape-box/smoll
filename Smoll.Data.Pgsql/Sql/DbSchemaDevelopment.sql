@@ -47,6 +47,8 @@ CREATE TABLE public."Articles"
     "ModifiedDate" timestamp without time zone,
     "CreatedBy" character varying COLLATE pg_catalog."default",
     "ModifiedBy" character varying COLLATE pg_catalog."default",
+    "EntityModifiable" boolean NOT NULL DEFAULT true,
+    "EntityVisible" boolean NOT NULL DEFAULT true,
     "Version" bytea,
     CONSTRAINT "Articles_pkey" PRIMARY KEY ("Id")
 )
@@ -75,6 +77,8 @@ CREATE TABLE public."Polls"
     "ModifiedDate" timestamp without time zone,
     "CreatedBy" character varying COLLATE pg_catalog."default",
     "ModifiedBy" character varying COLLATE pg_catalog."default",
+    "EntityModifiable" boolean NOT NULL DEFAULT true,
+    "EntityVisible" boolean NOT NULL DEFAULT true,
     "Version" bytea,
     CONSTRAINT "Polls_pkey" PRIMARY KEY ("Id")
 )
@@ -106,6 +110,8 @@ CREATE TABLE public."Proposals"
     "ModifiedDate" timestamp without time zone,
     "CreatedBy" character varying COLLATE pg_catalog."default",
     "ModifiedBy" character varying COLLATE pg_catalog."default",
+    "EntityModifiable" boolean NOT NULL DEFAULT true,
+    "EntityVisible" boolean NOT NULL DEFAULT true,
     "Version" bytea,
     CONSTRAINT "Proposals_pkey" PRIMARY KEY ("Id")
 )
@@ -134,6 +140,8 @@ CREATE TABLE public."Queues"
     "ModifiedDate" timestamp without time zone,
     "CreatedBy" character varying COLLATE pg_catalog."default",
     "ModifiedBy" character varying COLLATE pg_catalog."default",
+    "EntityModifiable" boolean NOT NULL DEFAULT true,
+    "EntityVisible" boolean NOT NULL DEFAULT true,
     "Version" bytea,
     CONSTRAINT "Queues_pkey" PRIMARY KEY ("Id")
 )
@@ -162,6 +170,8 @@ CREATE TABLE public."Suggestions"
     "ModifiedDate" timestamp without time zone,
     "CreatedBy" character varying COLLATE pg_catalog."default",
     "ModifiedBy" character varying COLLATE pg_catalog."default",
+    "EntityModifiable" boolean NOT NULL DEFAULT true,
+    "EntityVisible" boolean NOT NULL DEFAULT true,
     "Version" bytea,
     CONSTRAINT "Suggestions_pkey" PRIMARY KEY ("Id")
 )
@@ -187,6 +197,8 @@ CREATE TABLE public."PollOptions"
     "ModifiedDate" timestamp without time zone,
     "CreatedBy" character varying COLLATE pg_catalog."default",
     "ModifiedBy" character varying COLLATE pg_catalog."default",
+    "EntityModifiable" boolean NOT NULL DEFAULT true,
+    "EntityVisible" boolean NOT NULL DEFAULT true,
     "Version" bytea,
     CONSTRAINT "PollOptions_pkey" PRIMARY KEY ("Id")
 )
@@ -212,6 +224,8 @@ CREATE TABLE public."QueueOptions"
     "ModifiedDate" timestamp without time zone,
     "CreatedBy" character varying COLLATE pg_catalog."default",
     "ModifiedBy" character varying COLLATE pg_catalog."default",
+    "EntityModifiable" boolean NOT NULL DEFAULT true,
+    "EntityVisible" boolean NOT NULL DEFAULT true,
     "Version" bytea,
     CONSTRAINT "QueueOptions_pkey" PRIMARY KEY ("Id")
 )
@@ -237,6 +251,8 @@ CREATE TABLE public."SuggestionOptions"
     "ModifiedDate" timestamp without time zone,
     "CreatedBy" character varying COLLATE pg_catalog."default",
     "ModifiedBy" character varying COLLATE pg_catalog."default",
+    "EntityModifiable" boolean NOT NULL DEFAULT true,
+    "EntityVisible" boolean NOT NULL DEFAULT true,
     "Version" bytea,
     CONSTRAINT "SuggestionOptions_pkey" PRIMARY KEY ("Id")
 )

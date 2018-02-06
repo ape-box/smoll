@@ -10,10 +10,7 @@ namespace Smoll.Api.Back.Models
 {
     public interface IAdminRepository : IRepository
     {
-        int DefaultPageNumber { get; }
-        int DefaultPageSize { get; }
-
-        Task<IEnumerable<TEntity>> GetOrderedPageAsync<TEntity>(int pageNumber, int pageSize)
+        Task<IEnumerable<TEntity>> GetOrderedPageAsync<TEntity>((int? pageNumber, int? pageSize) pagination)
             where TEntity : class, IPublicationEntity;
 
         IAdminRepository Update<TEntity>(object id, TEntity entity, string modifiedBy = null)
@@ -27,14 +24,10 @@ namespace Smoll.Api.Back.Models
         {
         }
 
-        int IAdminRepository.DefaultPageNumber => DefaultPageNumber;
-
-        int IAdminRepository.DefaultPageSize => DefaultPageSize;
-
         IAdminRepository IAdminRepository.Update<TEntity>(object id, TEntity entity, string modifiedBy)
             => Update(entity, modifiedBy) as IAdminRepository;
 
-        public Task<IEnumerable<TEntity>> GetOrderedPageAsync<TEntity>(int pageNumber = DefaultPageNumber, int pageSize = DefaultPageSize)
+        public Task<IEnumerable<TEntity>> GetOrderedPageAsync<TEntity>((int? pageNumber, int? pageSize) pagination)
             where TEntity : class, IPublicationEntity
             => GetAsync<TEntity>(
                 filter: t => t.Status == PublishStatus.Published
@@ -42,8 +35,8 @@ namespace Smoll.Api.Back.Models
                              && t.ExpireDate >= DateTime.UtcNow,
                 orderBy: dbSet => dbSet.OrderBy(t => t.PublishDate),
                 includeProperties: null,
-                skip: PageNumberToSkip(pageNumber, NormalizePageSize(pageSize)),
-                take: NormalizePageSize(pageSize));
+                skip: PageNumberToSkip(pagination.pageNumber ?? DefaultPageNumber, NormalizePageSize(pagination.pageSize ?? DefaultPageSize)),
+                take: NormalizePageSize(pagination.pageSize ?? DefaultPageSize));
 
         public AdminRepository Update<TEntity>(object id, TEntity entity, string modifiedBy)
             where TEntity : class, IEntity
@@ -51,7 +44,7 @@ namespace Smoll.Api.Back.Models
             if (id != entity.Id) {
                 throw new ArgumentOutOfRangeException(nameof(entity.Id));
             }
-            
+
             return Update(entity, modifiedBy) as AdminRepository;
         }
     }

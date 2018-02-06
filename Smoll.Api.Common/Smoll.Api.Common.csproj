@@ -9,6 +9,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Smoll.Data\Smoll.Data.csproj" />
     <ProjectReference Include="..\Smoll.Messages\Smoll.Messages.csproj" />
   </ItemGroup>
 
