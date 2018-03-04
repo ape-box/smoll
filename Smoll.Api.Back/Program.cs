@@ -13,6 +13,8 @@ namespace Smoll.Api.Back
         public static IWebHost BuildWebHost(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
                 .UseStartup<Startup>()
+                //.UseKestrel()
+                //.UseUrls("http://smoll")
                 .Build();
     }
 }
