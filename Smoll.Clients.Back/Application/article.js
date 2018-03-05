@@ -63,5 +63,5 @@
         }
     };
 
-    router.addRoute("/Article", function () { return Article; });
+    router.addRoute("/article", "articles", function () { return Article; });
 })(window);

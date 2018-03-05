@@ -46,44 +46,74 @@
         throw "initialization order error, router is not defined";
     }
 
-    var data = {
-        polls: {
-            list: [],
-            fetch: function () {
+    function pollRowView(row) {
+        var onclick = function () {
+            alert("Selected Poll with id: "+row.id);
+        };
+        return m("div", { "class": "row" }, [
+            m("span", {}, m("input", { "type": "checkbox", onclick: onclick })),
+            m("span", {}, m("a", { "href": router.buildHRef("/poll/" + row.id) }, row.title))
+        ]);
+    };
+
+    function listView() {
+        var pollsList = [];
+        return {
+            oninit: function () {
                 m.request({
                     method: "GET",
                     url: app.api.baseUrl + "/poll",
                     config: function (xhr) { xhr.withCredentials = false; }
                 })
-                .then(function(items) {
-                    data.polls.list = items;
+                .then(function (items) {
+                    pollsList = items;
                 });
+            },
+            view: function () {
+                return m("div", { "id": "poll", "class": "listView" }, [
+                    m("h1", { "class": "title" }, "Polls"),
+                    m("div", { "class": "header" }, "header"),
+                    m("div", { "class": "rows" }, pollsList.map(pollRowView)),
+                    m("div", { "class": "footer" }, "footer")
+                ]);
             }
-        }
-    }
-
-    var rowView = function (row) {
-        return m("div", { "class": "row" }, [
-            m("span", {}, row.id),
-            m("span", {}, row.title),
-            m("span", {}, "actions")
-        ]);
+        };
     };
 
-    var listView = {
-        oninit: data.polls.fetch,
-        view: function () {
-            console.info("data.polls.list");
-            console.log(data.polls.list);
-            return m("div", { "class": "poll" }, [
-                m("h1", { "class": "title" }, "Polls"),
-                m("div", { "class": "footer" }, "footer actions"),
-                m("div", { "class": "rows" }, data.polls.list.map(rowView)),
-                m("div", { "class": "footer" }, "footer actions")
-            ]);
-        }
+    router.addRoute("/poll", "polls", listView);
+
+    function detailView(a, b, c) {
+        console.info("detailView: >>>");
+        console.log(a);
+        console.log(b);
+        console.log(c);
+        console.info("<<<<<<<<<<<");
+
+        var pollsList = [];
+        return {
+            oninit: function (a, b, c) {
+                console.info("oninit: >>>");
+                console.log(a);
+                console.log(b);
+                console.log(c);
+                console.info("<<<<<<<<<<<");
+            },
+            view: function (a, b, c) {
+                console.info("view: >>>");
+                console.log(a);
+                console.log(b);
+                console.log(c);
+                console.info("<<<<<<<<<<<");
+                return m("div", { "id": "poll", "class": "listView" }, [
+                    m("h1", { "class": "title" }, "Polls"),
+                    m("div", { "class": "header" }, "header"),
+                    m("div", { "class": "rows" }, pollsList.map(pollRowView)),
+                    m("div", { "class": "footer" }, "footer")
+                ]);
+            }
+        };
     };
 
-    router.addRoute("/Poll", function () { return listView; });
+    router.addRoute("/poll/:id", null, detailView);
 
 })(window);

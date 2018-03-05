@@ -62,35 +62,49 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
 
     var router = {
         routes: [],
-        addRoute: function(path, ctor) {
-            if (typeof(path) !== "string") {
+        addRoute: function (path, label, ctor) {
+            if (typeof (path) !== "string") {
                 throw "path must be a string";
+            }
+            if (typeof (label) !== "string" && label !== null) {
+                throw "label must be a string or null";
             }
             if (typeof(ctor) !== "function") {
                 throw "ctor must be a function";
             }
 
-            this.routes.push({ path: path, ctor: ctor });
+            this.routes.push({ path: path, label: label, ctor: ctor });
         },
-        defaultRoute: function() {
-            return this.routes[0].path;
+        buildHRef: function (path) {
+            if (typeof (path) !== "string") {
+                throw "path must be a string";
+            }
+
+            return "/#!" + path;
         },
-        build: function () {
+        buildNavigation: function () {
+            return this.routes.reduce(function (instance, route) {
+                if (typeof(route.label) === "string") {
+                    instance.push({ href: route.path, label: route.label});
+                }
+
+                return instance;
+            }, []);
+        },
+        buildRoutes: function () {
             return this.routes.reduce(function (instance, route) {
                 instance[route.path] = router;
                 return instance;
             }, {});
         },
+        defaultRoute: function() {
+            return this.routes[0].path;
+        },
         onmatch: function (args, requestedPath) {
-            console.info("args");
-            console.log(args);
-            console.info("requestedPath");
-            console.log(requestedPath);
-            return this.routes.reduce(function(sel, route) {
-                return sel
-                    ? sel
-                    : (route.path == requestedPath
-                        ? route.ctor()
+            return this.routes.reduce(function (sel, route) {
+                return sel ? sel : (
+                    route.path === requestedPath
+                        ? route.ctor(args)
                         : undefined);
             }, undefined);
         }
@@ -166,7 +180,7 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
         }
     };
 
-    router.addRoute("/Article", function () { return Article; });
+    router.addRoute("/article", "articles", function () { return Article; });
 })(window);
 
 
@@ -217,45 +231,75 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
         throw "initialization order error, router is not defined";
     }
 
-    var data = {
-        polls: {
-            list: [],
-            fetch: function () {
+    function pollRowView(row) {
+        var onclick = function () {
+            alert("Selected Poll with id: "+row.id);
+        };
+        return m("div", { "class": "row" }, [
+            m("span", {}, m("input", { "type": "checkbox", onclick: onclick })),
+            m("span", {}, m("a", { "href": router.buildHRef("/poll/" + row.id) }, row.title))
+        ]);
+    };
+
+    function listView() {
+        var pollsList = [];
+        return {
+            oninit: function () {
                 m.request({
                     method: "GET",
                     url: app.api.baseUrl + "/poll",
                     config: function (xhr) { xhr.withCredentials = false; }
                 })
-                .then(function(items) {
-                    data.polls.list = items;
+                .then(function (items) {
+                    pollsList = items;
                 });
+            },
+            view: function () {
+                return m("div", { "id": "poll", "class": "listView" }, [
+                    m("h1", { "class": "title" }, "Polls"),
+                    m("div", { "class": "header" }, "header"),
+                    m("div", { "class": "rows" }, pollsList.map(pollRowView)),
+                    m("div", { "class": "footer" }, "footer")
+                ]);
             }
-        }
-    }
-
-    var rowView = function (row) {
-        return m("div", { "class": "row" }, [
-            m("span", {}, row.id),
-            m("span", {}, row.title),
-            m("span", {}, "actions")
-        ]);
+        };
     };
 
-    var listView = {
-        oninit: data.polls.fetch,
-        view: function () {
-            console.info("data.polls.list");
-            console.log(data.polls.list);
-            return m("div", { "class": "poll" }, [
-                m("h1", { "class": "title" }, "Polls"),
-                m("div", { "class": "footer" }, "footer actions"),
-                m("div", { "class": "rows" }, data.polls.list.map(rowView)),
-                m("div", { "class": "footer" }, "footer actions")
-            ]);
-        }
+    router.addRoute("/poll", "polls", listView);
+
+    function detailView(a, b, c) {
+        console.info("detailView: >>>");
+        console.log(a);
+        console.log(b);
+        console.log(c);
+        console.info("<<<<<<<<<<<");
+
+        var pollsList = [];
+        return {
+            oninit: function (a, b, c) {
+                console.info("oninit: >>>");
+                console.log(a);
+                console.log(b);
+                console.log(c);
+                console.info("<<<<<<<<<<<");
+            },
+            view: function (a, b, c) {
+                console.info("view: >>>");
+                console.log(a);
+                console.log(b);
+                console.log(c);
+                console.info("<<<<<<<<<<<");
+                return m("div", { "id": "poll", "class": "listView" }, [
+                    m("h1", { "class": "title" }, "Polls"),
+                    m("div", { "class": "header" }, "header"),
+                    m("div", { "class": "rows" }, pollsList.map(pollRowView)),
+                    m("div", { "class": "footer" }, "footer")
+                ]);
+            }
+        };
     };
 
-    router.addRoute("/Poll", function () { return listView; });
+    router.addRoute("/poll/:id", null, detailView);
 
 })(window);
 
@@ -263,27 +307,35 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
 ; (function (w, m) {
 
     var app = w.smoll;
-    if (app === undefined) {
+    if (typeof(app) !== "object" || app === null) {
         throw "initialization order error, smoll is not defined";
     }
 
     var router = app.router;
-    if (router === undefined) {
+    if (typeof(router) !== "object" || router === null) {
         throw "initialization order error, router is not defined";
     }
 
+    var navigationItemView = function (item) {
+        return m("a",
+            {
+                href: router.buildHRef(item.href),
+                "class": "resource" + (m.route.get() === item.href ? " active" : "")
+            },
+            item.label);
+        };
+
+    var navitationItems = router.buildNavigation();
     var layout = {
         view: function () {
-            return m("div", { "class": "app" }, [
-                m("nav", { "class": "navigation" }, [
-                    m("a", { href: "/#!/Article" }, "Article"),
-                    m("a", { href: "/#!/Poll" }, "Poll")]),
+            return m("div", { "id": "app", "class": "" }, [
+                m("nav", { "id": "navigation" },
+                    navitationItems.map(navigationItemView)),
                 m("div", { id: "main" }, "placeholder")]);
         }
     };
 
     m.mount(document.body, layout);
-    //m.route(document.getElementById("main"), router.defaultRoute(), {
-    m.route(document.getElementById("main"), router.defaultRoute(), router.build());
+    m.route(document.getElementById("main"), router.defaultRoute(), router.buildRoutes());
 
 })(window, m);

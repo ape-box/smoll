@@ -2,5 +2,9 @@
   {
     "outputFile": "application/poll.js",
     "inputFile": "application/poll.coffee"
+  },
+  {
+    "outputFile": "wwwroot/css/app.css",
+    "inputFile": "wwwroot/css/app.scss"
   }
 ]
