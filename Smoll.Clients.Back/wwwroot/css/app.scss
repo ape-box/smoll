@@ -12,10 +12,6 @@
         a {
             padding: 8pt;
             text-decoration: none;
-            display: inline-block;
-
-            &:first-child {
-            }
 
             &.active {
                 background-color: hsla(210, 100%, 60%, 0.6);

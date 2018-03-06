@@ -51,6 +51,28 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
         baseUrl: "http://localhost:62218/api/v1"
     };
 
+    app.helpers = {
+        forms: {
+            renderInput: function (name, type, label, value) {
+                var childs = [];
+                if (label !== null) {
+                    childs.push(m("label", { "for": name }, label));
+                }
+                switch (type) {
+                    case "text":
+                        childs.push(m("input", { "type": type, "name": name, "placeholder": label, "value": value }));
+                        return m("div", { "class": "pure-control-group" }, childs);
+                    case "submit":
+                    case "button":
+                        childs.push(m("button", { "type": type, "name": name, "class": "pure-button pure-button-primary" }, value));
+                        return m("div", { "class": "pure-controls" }, childs);
+                    default:
+                        return undefined;
+                }
+            }
+        }
+    };
+
     w.smoll = app;
 })(window);
 
@@ -93,20 +115,29 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
         },
         buildRoutes: function () {
             return this.routes.reduce(function (instance, route) {
-                instance[route.path] = router;
+                instance[route.path] = route.ctor;
+
                 return instance;
             }, {});
         },
         defaultRoute: function() {
             return this.routes[0].path;
         },
-        onmatch: function (args, requestedPath) {
-            return this.routes.reduce(function (sel, route) {
-                return sel ? sel : (
-                    route.path === requestedPath
-                        ? route.ctor(args)
-                        : undefined);
-            }, undefined);
+        helpers: {
+            isActive: function (path) {
+                var matches = 0, cr = m.route.get();
+                if (cr) {
+                    var actual = cr.split("/");
+                    var expected = path.split("/");
+                    for (var i = 0; i < expected.length; i++) {
+                        if (actual[i].length > 0 && expected[i] === actual[i]) {
+                            matches += 1;
+                        }
+                    }
+                }
+
+                return matches;
+            }
         }
     };
 
@@ -116,110 +147,101 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
 })(window);
 
 
-//var Article = function () {
-//    return {
-//        Title: null,
-//        Subtitle: null,
-//        Slug: null,
-//        Description: null,
-//        Abstract: null,
-//        Content: null,
-
-//        Status: null,
-//        PublishDate: null,
-//        ExpireDate: null,
-
-//        Id: null,
-//        CreatedDate: null,
-//        ModifiedDate: null,
-//        CreatedBy: null,
-//        ModifiedBy: null,
-//        EntityModifiable: null,
-//        EntityVisible: null,
-//        Version: null,
-
-//        view: function () {
-//            return m("div", { "class": "article" }, [
-//                m("h1", { "class": "title" }, this.Title),
-//                m("div", { "class": "subtitle" }, this.Subtitle),
-//                m("div", { "class": "slug" }, this.Slug),
-//                m("div", { "class": "body" }, [
-//                    m("p", { "class": "abstract" }, this.Abstract),
-//                    m("p", { "class": "content" }, this.Content)
-//                ])
-//            ]);
-//        }
-//    }
-//};
-
 ; (function (w) {
 
     var app = w.smoll;
-    console.log(app);
     if (app === undefined) {
         throw "initialization order error, smoll is not defined";
     }
 
     var router = app.router;
-    console.log(router);
     if (router === undefined) {
         throw "initialization order error, router is not defined";
     }
 
-    var Article = {
-        view: function () {
-            return m("div", { "class": "article" }, [
-                m("h1", { "class": "title" }, "Article"),
-                m("div", { "class": "subtitle" }, "Subtitle"),
-                m("div", { "class": "slug" }, "Slug"),
-                m("div", { "class": "body" }, [
-                    m("p", { "class": "abstract" }, "Abstract"),
-                    m("p", { "class": "content" }, "Content")
-                ])
-            ]);
-        }
-    };
 
-    router.addRoute("/article", "articles", function () { return Article; });
+    function listView() {
+        function listRowView(row) {
+            var onclick = function () {
+                alert("Selected Article with id: " + row.id);
+            };
+            return m("div", { "class": "row" }, [
+                m("span", {}, m("input", { "type": "checkbox", onclick: onclick })),
+                m("span", {}, m("a", { "href": router.buildHRef("/article/" + row.id) }, row.title))
+            ]);
+        };
+
+        var resourcesList = [];
+        return {
+            oninit: function () {
+                m.request({
+                    method: "GET",
+                    url: app.api.baseUrl + "/article",
+                    config: function (xhr) { xhr.withCredentials = false; }
+                })
+                    .then(function (data) {
+                        resourcesList = data;
+                    });
+            },
+            view: function () {
+                return m("div", { "id": "article", "class": "listView" }, [
+                    m("h1", { "class": "title" }, "Articles"),
+                    m("div", { "class": "header" }, "header"),
+                    m("div", { "class": "rows" }, resourcesList.map(listRowView)),
+                    m("div", { "class": "footer" }, "footer")
+                ]);
+            }
+        };
+    };
+    router.addRoute("/article", "articles", listView);
+
+    function detailView(args) {
+        var resourceId = args.attrs.id;
+        var resourceDetails = {};
+        return {
+            oninit: function () {
+                m.request({
+                    method: "GET",
+                    url: app.api.baseUrl + "/article/" + resourceId,
+                    config: function (xhr) { xhr.withCredentials = false; }
+                })
+                    .then(function (data) {
+                        resourceDetails = data;
+                    });
+            },
+            view: function () {
+                return m("div", { "id": "article", "class": "detailView" }, [
+                    m("h1", { "class": "title" }, "Article: '" + resourceDetails.title + "'"),
+                    m("form", { "action": "javascript:void(0);", "class": "pure-form pure-form-aligned" },
+                        m("fieldset", [
+                            m("legend", "Edit details"),
+
+                            app.helpers.forms.renderInput("title", "text", "Title", resourceDetails.title),
+                            app.helpers.forms.renderInput("subtitle", "text", "Subtitle", resourceDetails.subtitle),
+                            app.helpers.forms.renderInput("slug", "text", "Slug", resourceDetails.slug),
+                            app.helpers.forms.renderInput("description", "text", "Description", resourceDetails.description),
+                            app.helpers.forms.renderInput("abstract", "text", "Abstract", resourceDetails.abstract),
+                            app.helpers.forms.renderInput("content", "text", "Content", resourceDetails.content),
+
+                            app.helpers.forms.renderInput("status", "text", "Status", resourceDetails.status),
+                            app.helpers.forms.renderInput("publishDate", "text", "Publish date", resourceDetails.publishDate),
+                            app.helpers.forms.renderInput("expireDate", "text", "Expire date", resourceDetails.expireDate),
+
+                            app.helpers.forms.renderInput("createdBy", "text", "Created by", resourceDetails.createdBy),
+                            app.helpers.forms.renderInput("createdDate", "text", "Created date", resourceDetails.createdDate),
+                            app.helpers.forms.renderInput("modifiedBy", "text", "Modified by", resourceDetails.modifiedBy),
+                            app.helpers.forms.renderInput("modifiedDate", "text", "Modified date", resourceDetails.modifiedDate),
+
+                            app.helpers.forms.renderInput("update", "button", null, "update")
+                        ]))
+                ]);
+            }
+        };
+    };
+    router.addRoute("/article/:id", null, detailView);
 })(window);
 
 
-//var Poll = function () {
-//    return {
-//        Title: null,
-//        Subtitle: null,
-//        Slug: null,
-//        Description: null,
-//        Abstract: null,
-//        Content: null,
-
-//        Status: null,
-//        PublishDate: null,
-//        ExpireDate: null,
-
-//        Id: null,
-//        CreatedDate: null,
-//        ModifiedDate: null,
-//        CreatedBy: null,
-//        ModifiedBy: null,
-//        EntityModifiable: null,
-//        EntityVisible: null,
-//        Version: null,
-
-//        view: function () {
-//            return m("div", { "class": "poll" }, [
-//                m("h1", { "class": "title" }, this.Title),
-//                m("div", { "class": "subtitle" }, this.Subtitle),
-//                m("div", { "class": "slug" }, this.Slug),
-//                m("div", { "class": "body" }, [
-//                    m("p", { "class": "abstract" }, this.Abstract),
-//                    m("p", { "class": "content" }, this.Content)
-//                ])
-//            ]);
-//        }
-//    }
-//};
-
 ; (function (w) {
     var app = w.smoll;
     if (app === undefined) {
@@ -231,18 +253,18 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
         throw "initialization order error, router is not defined";
     }
 
-    function pollRowView(row) {
-        var onclick = function () {
-            alert("Selected Poll with id: "+row.id);
-        };
-        return m("div", { "class": "row" }, [
-            m("span", {}, m("input", { "type": "checkbox", onclick: onclick })),
-            m("span", {}, m("a", { "href": router.buildHRef("/poll/" + row.id) }, row.title))
-        ]);
-    };
-
     function listView() {
-        var pollsList = [];
+        function listRowView(row) {
+            var onclick = function () {
+                alert("Selected Poll with id: "+row.id);
+            };
+            return m("div", { "class": "row" }, [
+                m("span", {}, m("input", { "type": "checkbox", onclick: onclick })),
+                m("span", {}, m("a", { "href": router.buildHRef("/poll/" + row.id) }, row.title))
+            ]);
+        };
+
+        var resourcesList = [];
         return {
             oninit: function () {
                 m.request({
@@ -250,55 +272,60 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
                     url: app.api.baseUrl + "/poll",
                     config: function (xhr) { xhr.withCredentials = false; }
                 })
-                .then(function (items) {
-                    pollsList = items;
-                });
+                    .then(function (data) {
+                        resourcesList = data;
+                    });
             },
             view: function () {
                 return m("div", { "id": "poll", "class": "listView" }, [
                     m("h1", { "class": "title" }, "Polls"),
                     m("div", { "class": "header" }, "header"),
-                    m("div", { "class": "rows" }, pollsList.map(pollRowView)),
+                    m("div", { "class": "rows" }, resourcesList.map(listRowView)),
                     m("div", { "class": "footer" }, "footer")
                 ]);
             }
         };
     };
-
     router.addRoute("/poll", "polls", listView);
 
-    function detailView(a, b, c) {
-        console.info("detailView: >>>");
-        console.log(a);
-        console.log(b);
-        console.log(c);
-        console.info("<<<<<<<<<<<");
-
-        var pollsList = [];
+    function detailView(args) {
+        var resourceId = args.attrs.id;
+        var resourceDetails = {};
         return {
-            oninit: function (a, b, c) {
-                console.info("oninit: >>>");
-                console.log(a);
-                console.log(b);
-                console.log(c);
-                console.info("<<<<<<<<<<<");
+            oninit: function () {
+                m.request({
+                    method: "GET",
+                    url: app.api.baseUrl + "/poll/" + resourceId,
+                    config: function (xhr) { xhr.withCredentials = false; }
+                })
+                    .then(function (data) {
+                        resourceDetails = data;
+                    });
             },
-            view: function (a, b, c) {
-                console.info("view: >>>");
-                console.log(a);
-                console.log(b);
-                console.log(c);
-                console.info("<<<<<<<<<<<");
-                return m("div", { "id": "poll", "class": "listView" }, [
-                    m("h1", { "class": "title" }, "Polls"),
-                    m("div", { "class": "header" }, "header"),
-                    m("div", { "class": "rows" }, pollsList.map(pollRowView)),
-                    m("div", { "class": "footer" }, "footer")
+            view: function () {
+                return m("div", { "id": "poll", "class": "detailView" }, [
+                    m("h1", { "class": "title" }, "Poll: '" + resourceDetails.title + "'"),
+                    m("form", { "action": "javascript:void(0);", "class": "pure-form pure-form-aligned" },
+                        m("fieldset", [
+                            m("legend", "Edit details"),
+
+                            app.helpers.forms.renderInput("title", "text", "Title", resourceDetails.title),
+
+                            app.helpers.forms.renderInput("publishDate", "text", "Publish date", resourceDetails.publishDate),
+                            app.helpers.forms.renderInput("expireDate", "text", "Expire date", resourceDetails.expireDate),
+                            app.helpers.forms.renderInput("status", "text", "Status", resourceDetails.status),
+
+                            app.helpers.forms.renderInput("createdBy", "text", "Created by", resourceDetails.createdBy),
+                            app.helpers.forms.renderInput("createdDate", "text", "Created date", resourceDetails.createdDate),
+                            app.helpers.forms.renderInput("modifiedBy", "text", "Modified by", resourceDetails.modifiedBy),
+                            app.helpers.forms.renderInput("modifiedDate", "text", "Modified date", resourceDetails.modifiedDate),
+
+                            app.helpers.forms.renderInput("update", "button", null, "update")
+                        ]))
                 ]);
             }
         };
     };
-
     router.addRoute("/poll/:id", null, detailView);
 
 })(window);
@@ -320,7 +347,7 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
         return m("a",
             {
                 href: router.buildHRef(item.href),
-                "class": "resource" + (m.route.get() === item.href ? " active" : "")
+                "class": "pure-menu-item resource" + (router.helpers.isActive(item.href) >= 1 ? " active" : "")
             },
             item.label);
         };
@@ -328,10 +355,11 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
     var navitationItems = router.buildNavigation();
     var layout = {
         view: function () {
-            return m("div", { "id": "app", "class": "" }, [
-                m("nav", { "id": "navigation" },
-                    navitationItems.map(navigationItemView)),
-                m("div", { id: "main" }, "placeholder")]);
+            return m("div", { "class": "pure-g"},
+                m("div", { "id": "app", "class": "pure-u-1" }, [
+                    m("nav", { "id": "navigation", "class": "pure-menu pure-menu-horizontal" },
+                        navitationItems.map(navigationItemView)),
+                    m("div", { id: "main" }, "placeholder")]));
         }
     };
 

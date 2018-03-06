@@ -37,20 +37,29 @@
         },
         buildRoutes: function () {
             return this.routes.reduce(function (instance, route) {
-                instance[route.path] = router;
+                instance[route.path] = route.ctor;
+
                 return instance;
             }, {});
         },
         defaultRoute: function() {
             return this.routes[0].path;
         },
-        onmatch: function (args, requestedPath) {
-            return this.routes.reduce(function (sel, route) {
-                return sel ? sel : (
-                    route.path === requestedPath
-                        ? route.ctor(args)
-                        : undefined);
-            }, undefined);
+        helpers: {
+            isActive: function (path) {
+                var matches = 0, cr = m.route.get();
+                if (cr) {
+                    var actual = cr.split("/");
+                    var expected = path.split("/");
+                    for (var i = 0; i < expected.length; i++) {
+                        if (actual[i].length > 0 && expected[i] === actual[i]) {
+                            matches += 1;
+                        }
+                    }
+                }
+
+                return matches;
+            }
         }
     };
 

@@ -1,40 +1,4 @@
 ﻿
-//var Poll = function () {
-//    return {
-//        Title: null,
-//        Subtitle: null,
-//        Slug: null,
-//        Description: null,
-//        Abstract: null,
-//        Content: null,
-
-//        Status: null,
-//        PublishDate: null,
-//        ExpireDate: null,
-
-//        Id: null,
-//        CreatedDate: null,
-//        ModifiedDate: null,
-//        CreatedBy: null,
-//        ModifiedBy: null,
-//        EntityModifiable: null,
-//        EntityVisible: null,
-//        Version: null,
-
-//        view: function () {
-//            return m("div", { "class": "poll" }, [
-//                m("h1", { "class": "title" }, this.Title),
-//                m("div", { "class": "subtitle" }, this.Subtitle),
-//                m("div", { "class": "slug" }, this.Slug),
-//                m("div", { "class": "body" }, [
-//                    m("p", { "class": "abstract" }, this.Abstract),
-//                    m("p", { "class": "content" }, this.Content)
-//                ])
-//            ]);
-//        }
-//    }
-//};
-
 ; (function (w) {
     var app = w.smoll;
     if (app === undefined) {
@@ -46,18 +10,18 @@
         throw "initialization order error, router is not defined";
     }
 
-    function pollRowView(row) {
-        var onclick = function () {
-            alert("Selected Poll with id: "+row.id);
-        };
-        return m("div", { "class": "row" }, [
-            m("span", {}, m("input", { "type": "checkbox", onclick: onclick })),
-            m("span", {}, m("a", { "href": router.buildHRef("/poll/" + row.id) }, row.title))
-        ]);
-    };
-
     function listView() {
-        var pollsList = [];
+        function listRowView(row) {
+            var onclick = function () {
+                alert("Selected Poll with id: "+row.id);
+            };
+            return m("div", { "class": "row" }, [
+                m("span", {}, m("input", { "type": "checkbox", onclick: onclick })),
+                m("span", {}, m("a", { "href": router.buildHRef("/poll/" + row.id) }, row.title))
+            ]);
+        };
+
+        var resourcesList = [];
         return {
             oninit: function () {
                 m.request({
@@ -65,55 +29,60 @@
                     url: app.api.baseUrl + "/poll",
                     config: function (xhr) { xhr.withCredentials = false; }
                 })
-                .then(function (items) {
-                    pollsList = items;
-                });
+                    .then(function (data) {
+                        resourcesList = data;
+                    });
             },
             view: function () {
                 return m("div", { "id": "poll", "class": "listView" }, [
                     m("h1", { "class": "title" }, "Polls"),
                     m("div", { "class": "header" }, "header"),
-                    m("div", { "class": "rows" }, pollsList.map(pollRowView)),
+                    m("div", { "class": "rows" }, resourcesList.map(listRowView)),
                     m("div", { "class": "footer" }, "footer")
                 ]);
             }
         };
     };
-
     router.addRoute("/poll", "polls", listView);
 
-    function detailView(a, b, c) {
-        console.info("detailView: >>>");
-        console.log(a);
-        console.log(b);
-        console.log(c);
-        console.info("<<<<<<<<<<<");
-
-        var pollsList = [];
+    function detailView(args) {
+        var resourceId = args.attrs.id;
+        var resourceDetails = {};
         return {
-            oninit: function (a, b, c) {
-                console.info("oninit: >>>");
-                console.log(a);
-                console.log(b);
-                console.log(c);
-                console.info("<<<<<<<<<<<");
+            oninit: function () {
+                m.request({
+                    method: "GET",
+                    url: app.api.baseUrl + "/poll/" + resourceId,
+                    config: function (xhr) { xhr.withCredentials = false; }
+                })
+                    .then(function (data) {
+                        resourceDetails = data;
+                    });
             },
-            view: function (a, b, c) {
-                console.info("view: >>>");
-                console.log(a);
-                console.log(b);
-                console.log(c);
-                console.info("<<<<<<<<<<<");
-                return m("div", { "id": "poll", "class": "listView" }, [
-                    m("h1", { "class": "title" }, "Polls"),
-                    m("div", { "class": "header" }, "header"),
-                    m("div", { "class": "rows" }, pollsList.map(pollRowView)),
-                    m("div", { "class": "footer" }, "footer")
+            view: function () {
+                return m("div", { "id": "poll", "class": "detailView" }, [
+                    m("h1", { "class": "title" }, "Poll: '" + resourceDetails.title + "'"),
+                    m("form", { "action": "javascript:void(0);", "class": "pure-form pure-form-aligned" },
+                        m("fieldset", [
+                            m("legend", "Edit details"),
+
+                            app.helpers.forms.renderInput("title", "text", "Title", resourceDetails.title),
+
+                            app.helpers.forms.renderInput("publishDate", "text", "Publish date", resourceDetails.publishDate),
+                            app.helpers.forms.renderInput("expireDate", "text", "Expire date", resourceDetails.expireDate),
+                            app.helpers.forms.renderInput("status", "text", "Status", resourceDetails.status),
+
+                            app.helpers.forms.renderInput("createdBy", "text", "Created by", resourceDetails.createdBy),
+                            app.helpers.forms.renderInput("createdDate", "text", "Created date", resourceDetails.createdDate),
+                            app.helpers.forms.renderInput("modifiedBy", "text", "Modified by", resourceDetails.modifiedBy),
+                            app.helpers.forms.renderInput("modifiedDate", "text", "Modified date", resourceDetails.modifiedDate),
+
+                            app.helpers.forms.renderInput("update", "button", null, "update")
+                        ]))
                 ]);
             }
         };
     };
-
     router.addRoute("/poll/:id", null, detailView);
 
 })(window);

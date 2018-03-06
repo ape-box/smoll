@@ -1522,8 +1522,7 @@ html, body {
     box-shadow: 0pt 1pt 8pt 0pt rgba(204, 204, 204, 0.1); }
     #app #navigation a {
       padding: 8pt;
-      text-decoration: none;
-      display: inline-block; }
+      text-decoration: none; }
       #app #navigation a.active {
         background-color: rgba(51, 153, 255, 0.6);
         color: white; }
