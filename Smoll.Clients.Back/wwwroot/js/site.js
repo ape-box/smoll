@@ -44,30 +44,73 @@ function(){for(var a=t.match(/:[^\/]+/g)||[],h=[].slice.call(arguments,1,-2),l=0
 u=d.redraw};d.subscribe(a,b);var x=function(a){if(a!==m)e.setPath(m,null,{replace:!0});else throw Error("Could not resolve default route "+m);};e.defineRoutes(A,function(a,b,d){var e=r=function(a,m){e===r&&(l=null==m||"function"!==typeof m.view&&"function"!==typeof m?"div":m,k=b,q=d,r=null,p=(a.render||h).bind(a),u())};a.view||"function"===typeof a?e({},a):a.onmatch?aa.resolve(a.onmatch(b,d)).then(function(b){e(a,b)},x):e(a,"div")},x)};m.set=function(a,d,h){null!=r&&(h=h||{},h.replace=!0);r=null;
 e.setPath(a,d,h)};m.get=function(){return q};m.prefix=function(a){e.prefix=a};var u=function(a,d){d.dom.setAttribute("href",e.prefix+d.attrs.href);d.dom.onclick=function(b){b.ctrlKey||b.metaKey||b.shiftKey||2===b.which||(b.preventDefault(),b.redraw=!1,b=this.getAttribute("href"),0===b.indexOf(e.prefix)&&(b=b.slice(e.prefix.length)),m.set(b,void 0,a))}};m.link=function(a){return null==a.tag?u.bind(u,a):u({},a)};m.param=function(a){return"undefined"!==typeof k&&"undefined"!==typeof a?k[a]:k};return m}(window,
 L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTarget?h.currentTarget[a]:h.currentTarget.getAttribute(a))}};var ca=U(window);x.render=ca.render;x.redraw=L.redraw;x.request=O.request;x.jsonp=O.jsonp;x.parseQueryString=P;x.buildQueryString=F;x.version="1.1.3";x.vnode=t;"undefined"!==typeof module?module.exports=x:window.m=x})();
+
 ; (function (w) {
-    var app = w.smoll || {};
 
-    app.api = {
-        baseUrl: "http://localhost:62218/api/v1"
-    };
-
-    app.helpers = {
-        forms: {
-            renderInput: function (name, type, label, value) {
-                var childs = [];
-                if (label !== null) {
-                    childs.push(m("label", { "for": name }, label));
+    var app = {
+        api: {
+            baseUrl: "http://localhost:62218/api/v1"
+        },
+        helpers: {
+            forms: {
+                renderInput: function (name, type, label, value) {
+                    var childs = [];
+                    if (label !== null) {
+                        childs.push(m("label", { "for": name }, label));
+                    }
+                    switch (type) {
+                        case "text":
+                            childs.push(m("input", { "type": type, "name": name, "placeholder": label, "value": value }));
+                            return m("div", { "class": "pure-control-group" }, childs);
+                        case "submit":
+                        case "button":
+                            childs.push(m("button", { "type": type, "name": name, "class": "pure-button pure-button-primary" }, value));
+                            return m("div", { "class": "pure-controls" }, childs);
+                        default:
+                            return undefined;
+                    }
                 }
-                switch (type) {
-                    case "text":
-                        childs.push(m("input", { "type": type, "name": name, "placeholder": label, "value": value }));
-                        return m("div", { "class": "pure-control-group" }, childs);
-                    case "submit":
-                    case "button":
-                        childs.push(m("button", { "type": type, "name": name, "class": "pure-button pure-button-primary" }, value));
-                        return m("div", { "class": "pure-controls" }, childs);
-                    default:
-                        return undefined;
+            },
+            resources: {
+                restGetAllFn: function (resourceUrl, callback) {
+                    if (typeof (resourceUrl) !== "string") {
+                        throw "resourceUrl must be a string";
+                    }
+                    if (typeof (callback) !== "function") {
+                        throw "callback must be a function";
+                    }
+
+                    return m.request({
+                        method: "GET",
+                        url: resourceUrl,
+                        config: function (xhr) { xhr.withCredentials = false; }
+                    })
+                    .then(callback);;
+                },
+                restGetDetailFn: function (resourceUrl, callback) {
+                    if (typeof (resourceUrl) !== "string") {
+                        throw "resourceUrl must be a string";
+                    }
+                    if (typeof (callback) !== "function") {
+                        throw "callback must be a function";
+                    }
+
+                    return m.request({
+                        method: "GET",
+                        url: app.api.baseUrl + resourceUrl,
+                        config: function (xhr) { xhr.withCredentials = false; }
+                    })
+                    .then(callback);
+                }
+            },
+            views: {
+                listViewFn: function (title, rowsNodes) {
+                    return m("div", { "id": "article", "class": "listView" }, [
+                        m("h1", { "class": "title" }, title),
+                        m("div", { "class": "header" }, "header"),
+                        m("div", { "class": "rows" }, rowsNodes),
+                        m("div", { "class": "footer" }, "footer")
+                    ]);
                 }
             }
         }
@@ -159,6 +202,9 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
         throw "initialization order error, router is not defined";
     }
 
+    var resource = {
+        baseUrl: "/articles"
+    };
 
     function listView() {
         function listRowView(row) {
@@ -167,47 +213,28 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
             };
             return m("div", { "class": "row" }, [
                 m("span", {}, m("input", { "type": "checkbox", onclick: onclick })),
-                m("span", {}, m("a", { "href": router.buildHRef("/article/" + row.id) }, row.title))
+                m("span", {}, m("a", { "href": router.buildHRef(resource.baseUrl + "/" + row.id) }, row.title))
             ]);
         };
 
         var resourcesList = [];
         return {
             oninit: function () {
-                m.request({
-                    method: "GET",
-                    url: app.api.baseUrl + "/article",
-                    config: function (xhr) { xhr.withCredentials = false; }
-                })
-                    .then(function (data) {
-                        resourcesList = data;
-                    });
+                return app.helpers.resources.restGetAllFn(app.api.baseUrl + resource.baseUrl, function (data) { resourcesList = data; });
             },
             view: function () {
-                return m("div", { "id": "article", "class": "listView" }, [
-                    m("h1", { "class": "title" }, "Articles"),
-                    m("div", { "class": "header" }, "header"),
-                    m("div", { "class": "rows" }, resourcesList.map(listRowView)),
-                    m("div", { "class": "footer" }, "footer")
-                ]);
+                return app.helpers.views.listViewFn("Articles", resourcesList.map(listRowView));
             }
         };
     };
-    router.addRoute("/article", "articles", listView);
+    router.addRoute(resource.baseUrl, "articles", listView);
 
     function detailView(args) {
         var resourceId = args.attrs.id;
         var resourceDetails = {};
         return {
             oninit: function () {
-                m.request({
-                    method: "GET",
-                    url: app.api.baseUrl + "/article/" + resourceId,
-                    config: function (xhr) { xhr.withCredentials = false; }
-                })
-                    .then(function (data) {
-                        resourceDetails = data;
-                    });
+                return app.helpers.resources.restGetDetailFn(app.api.baseUrl + resource.baseUrl + "/" + resourceId, function (data) { resourceDetails = data; });
             },
             view: function () {
                 return m("div", { "id": "article", "class": "detailView" }, [
@@ -238,7 +265,8 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
             }
         };
     };
-    router.addRoute("/article/:id", null, detailView);
+    router.addRoute(resource.baseUrl + "/:id", null, detailView);
+
 })(window);
 
 
@@ -253,6 +281,10 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
         throw "initialization order error, router is not defined";
     }
 
+    var resource = {
+        baseUrl: "/polls"
+    };
+
     function listView() {
         function listRowView(row) {
             var onclick = function () {
@@ -260,7 +292,7 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
             };
             return m("div", { "class": "row" }, [
                 m("span", {}, m("input", { "type": "checkbox", onclick: onclick })),
-                m("span", {}, m("a", { "href": router.buildHRef("/poll/" + row.id) }, row.title))
+                m("span", {}, m("a", { "href": router.buildHRef(resource.baseUrl + "/" + row.id) }, row.title))
             ]);
         };
 
@@ -269,7 +301,7 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
             oninit: function () {
                 m.request({
                     method: "GET",
-                    url: app.api.baseUrl + "/poll",
+                    url: app.api.baseUrl + resource.baseUrl,
                     config: function (xhr) { xhr.withCredentials = false; }
                 })
                     .then(function (data) {
@@ -286,7 +318,7 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
             }
         };
     };
-    router.addRoute("/poll", "polls", listView);
+    router.addRoute(resource.baseUrl, "polls", listView);
 
     function detailView(args) {
         var resourceId = args.attrs.id;
@@ -295,7 +327,7 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
             oninit: function () {
                 m.request({
                     method: "GET",
-                    url: app.api.baseUrl + "/poll/" + resourceId,
+                    url: app.api.baseUrl + resource.baseUrl + resourceId,
                     config: function (xhr) { xhr.withCredentials = false; }
                 })
                     .then(function (data) {
@@ -310,6 +342,9 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
                             m("legend", "Edit details"),
 
                             app.helpers.forms.renderInput("title", "text", "Title", resourceDetails.title),
+                            app.helpers.forms.renderInput("description", "text", "Description", resourceDetails.description),
+                            app.helpers.forms.renderInput("imageUrl", "text", "ImageUrl", resourceDetails.imageUrl),
+                            //app.helpers.forms.renderInput("options", "text", "Options", resourceDetails.options),
 
                             app.helpers.forms.renderInput("publishDate", "text", "Publish date", resourceDetails.publishDate),
                             app.helpers.forms.renderInput("expireDate", "text", "Expire date", resourceDetails.expireDate),
@@ -326,7 +361,295 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
             }
         };
     };
-    router.addRoute("/poll/:id", null, detailView);
+    router.addRoute(resource.baseUrl + "/:id", null, detailView);
+
+})(window);
+
+
+; (function (w) {
+
+    var app = w.smoll;
+    if (app === undefined) {
+        throw "initialization order error, smoll is not defined";
+    }
+
+    var router = app.router;
+    if (router === undefined) {
+        throw "initialization order error, router is not defined";
+    }
+
+    var resource = {
+        baseUrl: "/proposals"
+    };
+
+    function listView() {
+        function listRowView(row) {
+            var onclick = function () {
+                alert("Selected Proposal with id: " + row.id);
+            };
+            return m("div", { "class": "row" }, [
+                m("span", {}, m("input", { "type": "checkbox", onclick: onclick })),
+                m("span", {}, m("a", { "href": router.buildHRef(resource.baseUrl+"/" + row.id) }, row.title))
+            ]);
+        };
+
+        var resourcesList = [];
+        return {
+            oninit: function () {
+                m.request({
+                    method: "GET",
+                    url: app.api.baseUrl + resource.baseUrl,
+                    config: function (xhr) { xhr.withCredentials = false; }
+                })
+                    .then(function (data) {
+                        resourcesList = data;
+                    });
+            },
+            view: function () {
+                return m("div", { "id": "proposal", "class": "listView" }, [
+                    m("h1", { "class": "title" }, "Proposals"),
+                    m("div", { "class": "header" }, "header"),
+                    m("div", { "class": "rows" }, resourcesList.map(listRowView)),
+                    m("div", { "class": "footer" }, "footer")
+                ]);
+            }
+        };
+    };
+    router.addRoute(resource.baseUrl, "proposals", listView);
+
+    function detailView(args) {
+        var resourceId = args.attrs.id;
+        var resourceDetails = {};
+        return {
+            oninit: function () {
+                m.request({
+                    method: "GET",
+                    url: app.api.baseUrl + resource.baseUrl +"/" + resourceId,
+                    config: function (xhr) { xhr.withCredentials = false; }
+                })
+                    .then(function (data) {
+                        resourceDetails = data;
+                    });
+            },
+            view: function () {
+                return m("div", { "id": "proposal", "class": "detailView" }, [
+                    m("h1", { "class": "title" }, "Proposal: '" + resourceDetails.title + "'"),
+                    m("form", { "action": "javascript:void(0);", "class": "pure-form pure-form-aligned" },
+                        m("fieldset", [
+                            m("legend", "Edit details"),
+
+                            app.helpers.forms.renderInput("title", "text", "Title", resourceDetails.title),
+                            app.helpers.forms.renderInput("subtitle", "text", "Subtitle", resourceDetails.subtitle),
+                            app.helpers.forms.renderInput("slug", "text", "Slug", resourceDetails.slug),
+                            app.helpers.forms.renderInput("description", "text", "Description", resourceDetails.description),
+                            app.helpers.forms.renderInput("abstract", "text", "Abstract", resourceDetails.abstract),
+                            app.helpers.forms.renderInput("content", "text", "Content", resourceDetails.content),
+
+                            app.helpers.forms.renderInput("status", "text", "Status", resourceDetails.status),
+                            app.helpers.forms.renderInput("publishDate", "text", "Publish date", resourceDetails.publishDate),
+                            app.helpers.forms.renderInput("expireDate", "text", "Expire date", resourceDetails.expireDate),
+
+                            app.helpers.forms.renderInput("createdBy", "text", "Created by", resourceDetails.createdBy),
+                            app.helpers.forms.renderInput("createdDate", "text", "Created date", resourceDetails.createdDate),
+                            app.helpers.forms.renderInput("modifiedBy", "text", "Modified by", resourceDetails.modifiedBy),
+                            app.helpers.forms.renderInput("modifiedDate", "text", "Modified date", resourceDetails.modifiedDate),
+
+                            app.helpers.forms.renderInput("update", "button", null, "update")
+                        ]))
+                ]);
+            }
+        };
+    };
+    router.addRoute(resource.baseUrl +"/:id", null, detailView);
+})(window);
+
+
+; (function (w) {
+    var app = w.smoll;
+    if (app === undefined) {
+        throw "initialization order error, smoll is not defined";
+    }
+
+    var router = app.router;
+    if (router === undefined) {
+        throw "initialization order error, router is not defined";
+    }
+
+    var resource = {
+        baseUrl: "/queues"
+    };
+
+    function listView() {
+        function listRowView(row) {
+            var onclick = function () {
+                alert("Selected Queue with id: "+row.id);
+            };
+            return m("div", { "class": "row" }, [
+                m("span", {}, m("input", { "type": "checkbox", onclick: onclick })),
+                m("span", {}, m("a", { "href": router.buildHRef(resource.baseUrl + "/" + row.id) }, row.title))
+            ]);
+        };
+
+        var resourcesList = [];
+        return {
+            oninit: function () {
+                m.request({
+                    method: "GET",
+                    url: app.api.baseUrl + resource.baseUrl,
+                    config: function (xhr) { xhr.withCredentials = false; }
+                })
+                    .then(function (data) {
+                        resourcesList = data;
+                    });
+            },
+            view: function () {
+                return m("div", { "id": "queue", "class": "listView" }, [
+                    m("h1", { "class": "title" }, "Queues"),
+                    m("div", { "class": "header" }, "header"),
+                    m("div", { "class": "rows" }, resourcesList.map(listRowView)),
+                    m("div", { "class": "footer" }, "footer")
+                ]);
+            }
+        };
+    };
+    router.addRoute(resource.baseUrl, "queues", listView);
+
+    function detailView(args) {
+        var resourceId = args.attrs.id;
+        var resourceDetails = {};
+        return {
+            oninit: function () {
+                m.request({
+                    method: "GET",
+                    url: app.api.baseUrl + resource.baseUrl + resourceId,
+                    config: function (xhr) { xhr.withCredentials = false; }
+                })
+                    .then(function (data) {
+                        resourceDetails = data;
+                    });
+            },
+            view: function () {
+                return m("div", { "id": "queue", "class": "detailView" }, [
+                    m("h1", { "class": "title" }, "Queue: '" + resourceDetails.title + "'"),
+                    m("form", { "action": "javascript:void(0);", "class": "pure-form pure-form-aligned" },
+                        m("fieldset", [
+                            m("legend", "Edit details"),
+
+                            app.helpers.forms.renderInput("title", "text", "Title", resourceDetails.title),
+                            app.helpers.forms.renderInput("description", "text", "Description", resourceDetails.description),
+                            //app.helpers.forms.renderInput("options", "text", "Options", resourceDetails.options),
+
+                            app.helpers.forms.renderInput("publishDate", "text", "Publish date", resourceDetails.publishDate),
+                            app.helpers.forms.renderInput("expireDate", "text", "Expire date", resourceDetails.expireDate),
+                            app.helpers.forms.renderInput("status", "text", "Status", resourceDetails.status),
+
+                            app.helpers.forms.renderInput("createdBy", "text", "Created by", resourceDetails.createdBy),
+                            app.helpers.forms.renderInput("createdDate", "text", "Created date", resourceDetails.createdDate),
+                            app.helpers.forms.renderInput("modifiedBy", "text", "Modified by", resourceDetails.modifiedBy),
+                            app.helpers.forms.renderInput("modifiedDate", "text", "Modified date", resourceDetails.modifiedDate),
+
+                            app.helpers.forms.renderInput("update", "button", null, "update")
+                        ]))
+                ]);
+            }
+        };
+    };
+    router.addRoute(resource.baseUrl + "/:id", null, detailView);
+
+})(window);
+
+
+; (function (w) {
+    var app = w.smoll;
+    if (app === undefined) {
+        throw "initialization order error, smoll is not defined";
+    }
+
+    var router = app.router;
+    if (router === undefined) {
+        throw "initialization order error, router is not defined";
+    }
+
+    var resource = {
+        baseUrl: "/suggestions"
+    };
+
+    function listView() {
+        function listRowView(row) {
+            var onclick = function () {
+                alert("Selected Suggestion with id: "+row.id);
+            };
+            return m("div", { "class": "row" }, [
+                m("span", {}, m("input", { "type": "checkbox", onclick: onclick })),
+                m("span", {}, m("a", { "href": router.buildHRef(resource.baseUrl + "/" + row.id) }, row.title))
+            ]);
+        };
+
+        var resourcesList = [];
+        return {
+            oninit: function () {
+                m.request({
+                    method: "GET",
+                    url: app.api.baseUrl + resource.baseUrl,
+                    config: function (xhr) { xhr.withCredentials = false; }
+                })
+                    .then(function (data) {
+                        resourcesList = data;
+                    });
+            },
+            view: function () {
+                return m("div", { "id": "suggestion", "class": "listView" }, [
+                    m("h1", { "class": "title" }, "Suggestions"),
+                    m("div", { "class": "header" }, "header"),
+                    m("div", { "class": "rows" }, resourcesList.map(listRowView)),
+                    m("div", { "class": "footer" }, "footer")
+                ]);
+            }
+        };
+    };
+    router.addRoute(resource.baseUrl, "suggestions", listView);
+
+    function detailView(args) {
+        var resourceId = args.attrs.id;
+        var resourceDetails = {};
+        return {
+            oninit: function () {
+                m.request({
+                    method: "GET",
+                    url: app.api.baseUrl + resource.baseUrl + resourceId,
+                    config: function (xhr) { xhr.withCredentials = false; }
+                })
+                    .then(function (data) {
+                        resourceDetails = data;
+                    });
+            },
+            view: function () {
+                return m("div", { "id": "suggestion", "class": "detailView" }, [
+                    m("h1", { "class": "title" }, "Suggestion: '" + resourceDetails.title + "'"),
+                    m("form", { "action": "javascript:void(0);", "class": "pure-form pure-form-aligned" },
+                        m("fieldset", [
+                            m("legend", "Edit details"),
+
+                            app.helpers.forms.renderInput("title", "text", "Title", resourceDetails.title),
+                            app.helpers.forms.renderInput("description", "text", "Description", resourceDetails.description),
+                            //app.helpers.forms.renderInput("options", "text", "Options", resourceDetails.options),
+
+                            app.helpers.forms.renderInput("publishDate", "text", "Publish date", resourceDetails.publishDate),
+                            app.helpers.forms.renderInput("expireDate", "text", "Expire date", resourceDetails.expireDate),
+                            app.helpers.forms.renderInput("status", "text", "Status", resourceDetails.status),
+
+                            app.helpers.forms.renderInput("createdBy", "text", "Created by", resourceDetails.createdBy),
+                            app.helpers.forms.renderInput("createdDate", "text", "Created date", resourceDetails.createdDate),
+                            app.helpers.forms.renderInput("modifiedBy", "text", "Modified by", resourceDetails.modifiedBy),
+                            app.helpers.forms.renderInput("modifiedDate", "text", "Modified date", resourceDetails.modifiedDate),
+
+                            app.helpers.forms.renderInput("update", "button", null, "update")
+                        ]))
+                ]);
+            }
+        };
+    };
+    router.addRoute(resource.baseUrl + "/:id", null, detailView);
 
 })(window);
 

@@ -23,6 +23,9 @@
 
       "application/article.js",
       "application/poll.js",
+      "application/proposal.js",
+      "application/queue.js",
+      "application/suggestion.js",
 
       "application/main.js"
     ],

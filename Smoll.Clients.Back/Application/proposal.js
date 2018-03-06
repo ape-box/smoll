@@ -12,42 +12,61 @@
     }
 
     var resource = {
-        baseUrl: "/articles"
+        baseUrl: "/proposals"
     };
 
     function listView() {
         function listRowView(row) {
             var onclick = function () {
-                alert("Selected Article with id: " + row.id);
+                alert("Selected Proposal with id: " + row.id);
             };
             return m("div", { "class": "row" }, [
                 m("span", {}, m("input", { "type": "checkbox", onclick: onclick })),
-                m("span", {}, m("a", { "href": router.buildHRef(resource.baseUrl + "/" + row.id) }, row.title))
+                m("span", {}, m("a", { "href": router.buildHRef(resource.baseUrl+"/" + row.id) }, row.title))
             ]);
         };
 
         var resourcesList = [];
         return {
             oninit: function () {
-                return app.helpers.resources.restGetAllFn(app.api.baseUrl + resource.baseUrl, function (data) { resourcesList = data; });
+                m.request({
+                    method: "GET",
+                    url: app.api.baseUrl + resource.baseUrl,
+                    config: function (xhr) { xhr.withCredentials = false; }
+                })
+                    .then(function (data) {
+                        resourcesList = data;
+                    });
             },
             view: function () {
-                return app.helpers.views.listViewFn("Articles", resourcesList.map(listRowView));
+                return m("div", { "id": "proposal", "class": "listView" }, [
+                    m("h1", { "class": "title" }, "Proposals"),
+                    m("div", { "class": "header" }, "header"),
+                    m("div", { "class": "rows" }, resourcesList.map(listRowView)),
+                    m("div", { "class": "footer" }, "footer")
+                ]);
             }
         };
     };
-    router.addRoute(resource.baseUrl, "articles", listView);
+    router.addRoute(resource.baseUrl, "proposals", listView);
 
     function detailView(args) {
         var resourceId = args.attrs.id;
         var resourceDetails = {};
         return {
             oninit: function () {
-                return app.helpers.resources.restGetDetailFn(app.api.baseUrl + resource.baseUrl + "/" + resourceId, function (data) { resourceDetails = data; });
+                m.request({
+                    method: "GET",
+                    url: app.api.baseUrl + resource.baseUrl +"/" + resourceId,
+                    config: function (xhr) { xhr.withCredentials = false; }
+                })
+                    .then(function (data) {
+                        resourceDetails = data;
+                    });
             },
             view: function () {
-                return m("div", { "id": "article", "class": "detailView" }, [
-                    m("h1", { "class": "title" }, "Article: '" + resourceDetails.title + "'"),
+                return m("div", { "id": "proposal", "class": "detailView" }, [
+                    m("h1", { "class": "title" }, "Proposal: '" + resourceDetails.title + "'"),
                     m("form", { "action": "javascript:void(0);", "class": "pure-form pure-form-aligned" },
                         m("fieldset", [
                             m("legend", "Edit details"),
@@ -74,6 +93,5 @@
             }
         };
     };
-    router.addRoute(resource.baseUrl + "/:id", null, detailView);
-
+    router.addRoute(resource.baseUrl +"/:id", null, detailView);
 })(window);

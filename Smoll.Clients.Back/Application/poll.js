@@ -10,6 +10,10 @@
         throw "initialization order error, router is not defined";
     }
 
+    var resource = {
+        baseUrl: "/polls"
+    };
+
     function listView() {
         function listRowView(row) {
             var onclick = function () {
@@ -17,7 +21,7 @@
             };
             return m("div", { "class": "row" }, [
                 m("span", {}, m("input", { "type": "checkbox", onclick: onclick })),
-                m("span", {}, m("a", { "href": router.buildHRef("/poll/" + row.id) }, row.title))
+                m("span", {}, m("a", { "href": router.buildHRef(resource.baseUrl + "/" + row.id) }, row.title))
             ]);
         };
 
@@ -26,7 +30,7 @@
             oninit: function () {
                 m.request({
                     method: "GET",
-                    url: app.api.baseUrl + "/poll",
+                    url: app.api.baseUrl + resource.baseUrl,
                     config: function (xhr) { xhr.withCredentials = false; }
                 })
                     .then(function (data) {
@@ -43,7 +47,7 @@
             }
         };
     };
-    router.addRoute("/poll", "polls", listView);
+    router.addRoute(resource.baseUrl, "polls", listView);
 
     function detailView(args) {
         var resourceId = args.attrs.id;
@@ -52,7 +56,7 @@
             oninit: function () {
                 m.request({
                     method: "GET",
-                    url: app.api.baseUrl + "/poll/" + resourceId,
+                    url: app.api.baseUrl + resource.baseUrl + resourceId,
                     config: function (xhr) { xhr.withCredentials = false; }
                 })
                     .then(function (data) {
@@ -67,6 +71,9 @@
                             m("legend", "Edit details"),
 
                             app.helpers.forms.renderInput("title", "text", "Title", resourceDetails.title),
+                            app.helpers.forms.renderInput("description", "text", "Description", resourceDetails.description),
+                            app.helpers.forms.renderInput("imageUrl", "text", "ImageUrl", resourceDetails.imageUrl),
+                            //app.helpers.forms.renderInput("options", "text", "Options", resourceDetails.options),
 
                             app.helpers.forms.renderInput("publishDate", "text", "Publish date", resourceDetails.publishDate),
                             app.helpers.forms.renderInput("expireDate", "text", "Expire date", resourceDetails.expireDate),
@@ -83,6 +90,6 @@
             }
         };
     };
-    router.addRoute("/poll/:id", null, detailView);
+    router.addRoute(resource.baseUrl + "/:id", null, detailView);
 
 })(window);
