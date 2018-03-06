@@ -3,9 +3,9 @@ using Smoll.Api.Back.Models.Entities;
 
 namespace Smoll.Api.Back.Controllers.Entities
 {
-    public class ArticleController : EntityAdminControllerBase<Article>
+    public class PollsController : EntityAdminControllerBase<Poll>
     {
-        public ArticleController(IAdminRepository repository)
+        public PollsController(IAdminRepository repository)
             : base(repository)
         {
         }
