@@ -33,6 +33,14 @@
                 padding: 4pt 8pt;
             }
 
+            .header, .footer {
+                .label {
+                    font-style: italic;
+                    font-size: 11pt;
+                    margin-right: 10pt;
+                }
+            }
+
             .header {
                 border-top-left-radius: 6pt;
                 border-top-right-radius: 6pt;
@@ -51,6 +59,13 @@
                 border-bottom-left-radius: 6pt;
                 border-bottom-right-radius: 6pt;
                 border-top: none;
+
+                .actions {
+                    .pure-button {
+                        font-size: 11pt;
+                        padding: 0.25em 0.5em;
+                    }
+                }
             }
         }
     }

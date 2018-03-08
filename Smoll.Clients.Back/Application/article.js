@@ -14,10 +14,7 @@
     var resource = {
         router: router,
         baseUrl: "/articles",
-        listNavLabel: "articles",
-        listViewTitle: "Articles",
-        detailViewId: "article",
-        detailViewTitle: "Article",
+        name: "article",
         data: {
             create: {
                 title: { label: "Title", attributes: { type: "text" } },
@@ -38,7 +35,6 @@
         }
     };
 
-    router.addRoute(resource.baseUrl, resource.listNavLabel, app.helpers.views.listView(resource));
-    router.addRoute(resource.baseUrl + "/:id", null, app.helpers.views.detailView(resource));
+    router.registerResource(resource);
 
 })(window);

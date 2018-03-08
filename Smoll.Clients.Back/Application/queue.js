@@ -13,21 +13,19 @@
     var resource = {
         router: router,
         baseUrl: "/queues",
-        listViewTitle: "Queues",
-        listNavLabel: "queues",
+        name: "queue",
         data: {
             create: {
-                title: { type: "text", label: "Title" },
-                description: { type: "text", label: "Description" }
+                title: { label: "Title", attributes: { type: "text" } },
+                description: { label: "Description", attributes: { type: "text" } }
             },
             edit: {
-                title: { type: "text", label: "Title" },
-                description: { type: "text", label: "Description" }
+                title: { label: "Title", attributes: { type: "text" } },
+                description: { label: "Description", attributes: { type: "text" } }
             }
         }
     };
 
-    router.addRoute(resource.baseUrl, resource.listNavLabel, app.helpers.views.listView(resource));
-    router.addRoute(resource.baseUrl + "/:id", null, app.helpers.views.detailView(resource));
+    router.registerResource(resource);
 
 })(window);

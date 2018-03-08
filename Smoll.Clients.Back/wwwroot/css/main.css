@@ -1532,6 +1532,10 @@ html, body {
     #app #main .listView .header, #app #main .listView .row, #app #main .listView .footer {
       border: 1px solid rgba(0, 0, 0, 0.6);
       padding: 4pt 8pt; }
+    #app #main .listView .header .label, #app #main .listView .footer .label {
+      font-style: italic;
+      font-size: 11pt;
+      margin-right: 10pt; }
     #app #main .listView .header {
       border-top-left-radius: 6pt;
       border-top-right-radius: 6pt;
@@ -1542,3 +1546,6 @@ html, body {
       border-bottom-left-radius: 6pt;
       border-bottom-right-radius: 6pt;
       border-top: none; }
+      #app #main .listView .footer .actions .pure-button {
+        font-size: 11pt;
+        padding: 0.25em 0.5em; }

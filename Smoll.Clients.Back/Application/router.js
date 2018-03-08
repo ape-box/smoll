@@ -62,6 +62,11 @@
 
                 return matches;
             }
+        },
+        registerResource: function (resourceDef) {
+            router.addRoute(resourceDef.baseUrl, app.helpers.resources.strPlural(resourceDef.name), app.helpers.views.listView(resourceDef));
+            router.addRoute(resourceDef.baseUrl + "/new", null, app.helpers.views.createView(resourceDef));
+            router.addRoute(resourceDef.baseUrl + "/:id", null, app.helpers.views.editView(resourceDef));
         }
     };
 

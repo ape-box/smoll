@@ -13,8 +13,7 @@
     var resource = {
         router: router,
         baseUrl: "/polls",
-        listViewTitle: "Polls",
-        listNavLabel: "polls",
+        name: "poll",
         data: {
             create: {
                 title: { label: "Title", attributes: { type: "text" } },
@@ -29,7 +28,6 @@
         }
     };
 
-    router.addRoute(resource.baseUrl, resource.listNavLabel, app.helpers.views.listView(resource));
-    router.addRoute(resource.baseUrl + "/:id", null, app.helpers.views.detailView(resource));
+    router.registerResource(resource);
 
 })(window);

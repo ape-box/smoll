@@ -14,29 +14,27 @@
     var resource = {
         router: router,
         baseUrl: "/proposals",
-        listViewTitle: "Proposals",
-        listNavLabel: "proposals",
+        name: "proposal",
         data: {
             create: {
-                title: { type: "text", label: "Title" },
-                subtitle: { type: "text", label: "Subtitle" },
-                slug: { type: "text", label: "Slug" },
-                description: { type: "text", label: "Description" },
-                abstract: { type: "text", label: "Abstract" },
-                content: { type: "text", label: "Content" }
+                title: { label: "Title", attributes: { type: "text" } },
+                subtitle: { label: "Subtitle", attributes: { type: "text" } },
+                slug: { label: "Slug", attributes: { type: "text" } },
+                description: { label: "Description", attributes: { type: "text" } },
+                abstract: { label: "Abstract", attributes: { type: "text" } },
+                content: { label: "Content", attributes: { type: "text" } }
             },
             edit: {
-                title: { type: "text", label: "Title" },
-                subtitle: { type: "text", label: "Subtitle" },
-                slug: { type: "text", label: "Slug" },
-                description: { type: "text", label: "Description" },
-                abstract: { type: "text", label: "Abstract" },
-                content: { type: "text", label: "Content" }
+                title: { label: "Title", attributes: { type: "text" } },
+                subtitle: { label: "Subtitle", attributes: { type: "text" } },
+                slug: { label: "Slug", attributes: { type: "text" } },
+                description: { label: "Description", attributes: { type: "text" } },
+                abstract: { label: "Abstract", attributes: { type: "text" } },
+                content: { label: "Content", attributes: { type: "text" } }
             }
         }
     };
 
-    router.addRoute(resource.baseUrl, resource.listNavLabel, app.helpers.views.listView(resource));
-    router.addRoute(resource.baseUrl + "/:id", null, app.helpers.views.detailView(resource));
+    router.registerResource(resource);
 
 })(window);
