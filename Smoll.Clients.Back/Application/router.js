@@ -1,4 +1,6 @@
-﻿;(function(w) {
+﻿
+; (function (w) {
+
     var app = w.smoll;
     if (app === undefined) {
         throw "initialization order error, smoll is not defined";

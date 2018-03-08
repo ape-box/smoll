@@ -12,86 +12,31 @@
     }
 
     var resource = {
-        baseUrl: "/proposals"
-    };
-
-    function listView() {
-        function listRowView(row) {
-            var onclick = function () {
-                alert("Selected Proposal with id: " + row.id);
-            };
-            return m("div", { "class": "row" }, [
-                m("span", {}, m("input", { "type": "checkbox", onclick: onclick })),
-                m("span", {}, m("a", { "href": router.buildHRef(resource.baseUrl+"/" + row.id) }, row.title))
-            ]);
-        };
-
-        var resourcesList = [];
-        return {
-            oninit: function () {
-                m.request({
-                    method: "GET",
-                    url: app.api.baseUrl + resource.baseUrl,
-                    config: function (xhr) { xhr.withCredentials = false; }
-                })
-                    .then(function (data) {
-                        resourcesList = data;
-                    });
+        router: router,
+        baseUrl: "/proposals",
+        listViewTitle: "Proposals",
+        listNavLabel: "proposals",
+        data: {
+            create: {
+                title: { type: "text", label: "Title" },
+                subtitle: { type: "text", label: "Subtitle" },
+                slug: { type: "text", label: "Slug" },
+                description: { type: "text", label: "Description" },
+                abstract: { type: "text", label: "Abstract" },
+                content: { type: "text", label: "Content" }
             },
-            view: function () {
-                return m("div", { "id": "proposal", "class": "listView" }, [
-                    m("h1", { "class": "title" }, "Proposals"),
-                    m("div", { "class": "header" }, "header"),
-                    m("div", { "class": "rows" }, resourcesList.map(listRowView)),
-                    m("div", { "class": "footer" }, "footer")
-                ]);
+            edit: {
+                title: { type: "text", label: "Title" },
+                subtitle: { type: "text", label: "Subtitle" },
+                slug: { type: "text", label: "Slug" },
+                description: { type: "text", label: "Description" },
+                abstract: { type: "text", label: "Abstract" },
+                content: { type: "text", label: "Content" }
             }
-        };
+        }
     };
-    router.addRoute(resource.baseUrl, "proposals", listView);
 
-    function detailView(args) {
-        var resourceId = args.attrs.id;
-        var resourceDetails = {};
-        return {
-            oninit: function () {
-                m.request({
-                    method: "GET",
-                    url: app.api.baseUrl + resource.baseUrl +"/" + resourceId,
-                    config: function (xhr) { xhr.withCredentials = false; }
-                })
-                    .then(function (data) {
-                        resourceDetails = data;
-                    });
-            },
-            view: function () {
-                return m("div", { "id": "proposal", "class": "detailView" }, [
-                    m("h1", { "class": "title" }, "Proposal: '" + resourceDetails.title + "'"),
-                    m("form", { "action": "javascript:void(0);", "class": "pure-form pure-form-aligned" },
-                        m("fieldset", [
-                            m("legend", "Edit details"),
+    router.addRoute(resource.baseUrl, resource.listNavLabel, app.helpers.views.listView(resource));
+    router.addRoute(resource.baseUrl + "/:id", null, app.helpers.views.detailView(resource));
 
-                            app.helpers.forms.renderInput("title", "text", "Title", resourceDetails.title),
-                            app.helpers.forms.renderInput("subtitle", "text", "Subtitle", resourceDetails.subtitle),
-                            app.helpers.forms.renderInput("slug", "text", "Slug", resourceDetails.slug),
-                            app.helpers.forms.renderInput("description", "text", "Description", resourceDetails.description),
-                            app.helpers.forms.renderInput("abstract", "text", "Abstract", resourceDetails.abstract),
-                            app.helpers.forms.renderInput("content", "text", "Content", resourceDetails.content),
-
-                            app.helpers.forms.renderInput("status", "text", "Status", resourceDetails.status),
-                            app.helpers.forms.renderInput("publishDate", "text", "Publish date", resourceDetails.publishDate),
-                            app.helpers.forms.renderInput("expireDate", "text", "Expire date", resourceDetails.expireDate),
-
-                            app.helpers.forms.renderInput("createdBy", "text", "Created by", resourceDetails.createdBy),
-                            app.helpers.forms.renderInput("createdDate", "text", "Created date", resourceDetails.createdDate),
-                            app.helpers.forms.renderInput("modifiedBy", "text", "Modified by", resourceDetails.modifiedBy),
-                            app.helpers.forms.renderInput("modifiedDate", "text", "Modified date", resourceDetails.modifiedDate),
-
-                            app.helpers.forms.renderInput("update", "button", null, "update")
-                        ]))
-                ]);
-            }
-        };
-    };
-    router.addRoute(resource.baseUrl +"/:id", null, detailView);
 })(window);

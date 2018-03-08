@@ -49,25 +49,63 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
 
     var app = {
         api: {
-            baseUrl: "http://localhost:62218/api/v1"
+            baseUrl: "http://localhost:62218/api/v1",
+            getFullUrl: function () {
+                return app.api.baseUrl + "/" + Array.prototype.slice.call(arguments).join("/");
+            }
         },
         helpers: {
+            extend: function (out) {
+                out = out || {};
+
+                for (var i = 1; i < arguments.length; i++) {
+                    if (!arguments[i])
+                        continue;
+
+                    for (var key in arguments[i]) {
+                        if (arguments[i].hasOwnProperty(key))
+                            out[key] = arguments[i][key];
+                    }
+                }
+
+                return out;
+            },
             forms: {
-                renderInput: function (name, type, label, value) {
+                renderForm: function (definition, data) {
+                    var fields = [];
+                    for (var name in definition) {
+                        fields.push(app.helpers.forms.renderInput(name, definition[name]["label"], definition[name]["attributes"], data[name]));
+                    }
+
+                    return fields;
+                },
+                renderInput: function (name, label, attributes, value) {
                     var childs = [];
                     if (label !== null) {
                         childs.push(m("label", { "for": name }, label));
                     }
-                    switch (type) {
+                    switch (attributes["type"]) {
                         case "text":
-                            childs.push(m("input", { "type": type, "name": name, "placeholder": label, "value": value }));
+                            app.helpers.extend(attributes,
+                                {
+                                    type: "text",
+                                    name: name,
+                                    placeholder: label,
+                                    value: value
+                                });
+                            childs.push(m("input", attributes));
                             return m("div", { "class": "pure-control-group" }, childs);
                         case "submit":
                         case "button":
-                            childs.push(m("button", { "type": type, "name": name, "class": "pure-button pure-button-primary" }, value));
+                            app.helpers.extend(attributes,
+                                {
+                                    name: name,
+                                    "class": "pure-button pure-button-primary"
+                                });
+                            childs.push(m("button", attributes, value));
                             return m("div", { "class": "pure-controls" }, childs);
                         default:
-                            return undefined;
+                            throw "missing attribute type in rendering input";
                     }
                 }
             },
@@ -97,13 +135,24 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
 
                     return m.request({
                         method: "GET",
-                        url: app.api.baseUrl + resourceUrl,
+                        url: resourceUrl,
                         config: function (xhr) { xhr.withCredentials = false; }
                     })
                     .then(callback);
                 }
             },
             views: {
+                listViewRowFn: function (router, resourceBaseUrl) {
+                    return function (row) {
+                        var onclick = function () {
+                            alert("Selected resource with id: " + row.id);
+                        };
+                        return m("div", { "class": "row" }, [
+                            m("span", {}, m("input", { "type": "checkbox", onclick: onclick })),
+                            m("span", {}, m("a", { "href": router.buildHRef(resourceBaseUrl + "/" + row.id) }, row.title))
+                        ]);
+                    }
+                },
                 listViewFn: function (title, rowsNodes) {
                     return m("div", { "id": "article", "class": "listView" }, [
                         m("h1", { "class": "title" }, title),
@@ -111,6 +160,44 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
                         m("div", { "class": "rows" }, rowsNodes),
                         m("div", { "class": "footer" }, "footer")
                     ]);
+                },
+                listView: function (resourceDef) {
+                    return function () {
+                        var resourcesList = [];
+                        return {
+                            oninit: function () {
+                                return app.helpers.resources.restGetAllFn(app.api.getFullUrl(resourceDef.baseUrl), function (data) { resourcesList = data; });
+                            },
+                            view: function () {
+                                var rows = resourcesList.map(app.helpers.views.listViewRowFn(resourceDef.router, resourceDef.baseUrl));
+                                return app.helpers.views.listViewFn(resourceDef.listViewTitle, rows);
+                            }
+                        };
+                    };
+                },
+                detailView: function (resourceDef) {
+                    return function (args) {
+                        var resourceId = args.attrs.id;
+                        var resourceDetails = {};
+                        return {
+                            oninit: function () {
+                                return app.helpers.resources.restGetDetailFn(app.api.getFullUrl(resourceDef.baseUrl, resourceId), function (data) { resourceDetails = data; });
+                            },
+                            view: function () {
+                                return m("div", { "id": resourceDef.detailViewId, "class": "detailView" }, [
+                                    m("h1", { "class": "title" }, resourceDef.detailViewTitle + ": '" + resourceDetails.title + "'"),
+                                    m("form", { "action": "javascript:void(0);", "class": "pure-form pure-form-aligned" },
+                                        m("fieldset",  [].concat(
+                                            m("legend", "Edit details"),
+                                            app.helpers.forms.renderForm(resourceDef.data.edit, resourceDetails),
+                                            app.helpers.forms.renderForm(app.data.publishable.edit, resourceDetails),
+                                            app.helpers.forms.renderForm(app.data.entityStats.edit, resourceDetails),
+                                            app.helpers.forms.renderInput("update", null, { type: "button" }, "update")
+                                        )))
+                                ]);
+                            }
+                        };
+                    }
                 }
             }
         }
@@ -119,7 +206,9 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
     w.smoll = app;
 })(window);
 
-;(function(w) {
+
+; (function (w) {
+
     var app = w.smoll;
     if (app === undefined) {
         throw "initialization order error, smoll is not defined";
@@ -197,171 +286,31 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
         throw "initialization order error, smoll is not defined";
     }
 
-    var router = app.router;
-    if (router === undefined) {
-        throw "initialization order error, router is not defined";
-    }
-
-    var resource = {
-        baseUrl: "/articles"
-    };
-
-    function listView() {
-        function listRowView(row) {
-            var onclick = function () {
-                alert("Selected Article with id: " + row.id);
-            };
-            return m("div", { "class": "row" }, [
-                m("span", {}, m("input", { "type": "checkbox", onclick: onclick })),
-                m("span", {}, m("a", { "href": router.buildHRef(resource.baseUrl + "/" + row.id) }, row.title))
-            ]);
-        };
-
-        var resourcesList = [];
-        return {
-            oninit: function () {
-                return app.helpers.resources.restGetAllFn(app.api.baseUrl + resource.baseUrl, function (data) { resourcesList = data; });
-            },
-            view: function () {
-                return app.helpers.views.listViewFn("Articles", resourcesList.map(listRowView));
+    var data = {
+        entityStats: {
+            create: {},
+            edit: {
+                createdBy: { label: "Created by", attributes: { type: "text", readonly: "readonly" } },
+                createdDate: { label: "Created date", attributes: { type: "text", readonly: "readonly" } },
+                modifiedBy: { label: "Modified by", attributes: { type: "text", readonly: "readonly" } },
+                modifiedDate: { label: "Modified date", attributes: { type: "text", readonly: "readonly" } }
             }
-        };
-    };
-    router.addRoute(resource.baseUrl, "articles", listView);
-
-    function detailView(args) {
-        var resourceId = args.attrs.id;
-        var resourceDetails = {};
-        return {
-            oninit: function () {
-                return app.helpers.resources.restGetDetailFn(app.api.baseUrl + resource.baseUrl + "/" + resourceId, function (data) { resourceDetails = data; });
+        },
+        publishable: {
+            create: {
+                status: { label: "Status", attributes: { type: "text" } },
+                publishDate: { label: "Publish date", attributes: { type: "text" } },
+                expireDate: { label: "Expire date", attributes: { type: "text" } }
             },
-            view: function () {
-                return m("div", { "id": "article", "class": "detailView" }, [
-                    m("h1", { "class": "title" }, "Article: '" + resourceDetails.title + "'"),
-                    m("form", { "action": "javascript:void(0);", "class": "pure-form pure-form-aligned" },
-                        m("fieldset", [
-                            m("legend", "Edit details"),
-
-                            app.helpers.forms.renderInput("title", "text", "Title", resourceDetails.title),
-                            app.helpers.forms.renderInput("subtitle", "text", "Subtitle", resourceDetails.subtitle),
-                            app.helpers.forms.renderInput("slug", "text", "Slug", resourceDetails.slug),
-                            app.helpers.forms.renderInput("description", "text", "Description", resourceDetails.description),
-                            app.helpers.forms.renderInput("abstract", "text", "Abstract", resourceDetails.abstract),
-                            app.helpers.forms.renderInput("content", "text", "Content", resourceDetails.content),
-
-                            app.helpers.forms.renderInput("status", "text", "Status", resourceDetails.status),
-                            app.helpers.forms.renderInput("publishDate", "text", "Publish date", resourceDetails.publishDate),
-                            app.helpers.forms.renderInput("expireDate", "text", "Expire date", resourceDetails.expireDate),
-
-                            app.helpers.forms.renderInput("createdBy", "text", "Created by", resourceDetails.createdBy),
-                            app.helpers.forms.renderInput("createdDate", "text", "Created date", resourceDetails.createdDate),
-                            app.helpers.forms.renderInput("modifiedBy", "text", "Modified by", resourceDetails.modifiedBy),
-                            app.helpers.forms.renderInput("modifiedDate", "text", "Modified date", resourceDetails.modifiedDate),
-
-                            app.helpers.forms.renderInput("update", "button", null, "update")
-                        ]))
-                ]);
+            edit: {
+                status: { label: "Status", attributes: { type: "text" } },
+                publishDate: { label: "Publish date", attributes: { type: "text" } },
+                expireDate: { label: "Expire date", attributes: { type: "text" } }
             }
-        };
-    };
-    router.addRoute(resource.baseUrl + "/:id", null, detailView);
-
-})(window);
-
-
-; (function (w) {
-    var app = w.smoll;
-    if (app === undefined) {
-        throw "initialization order error, smoll is not defined";
-    }
-
-    var router = app.router;
-    if (router === undefined) {
-        throw "initialization order error, router is not defined";
-    }
-
-    var resource = {
-        baseUrl: "/polls"
+        }
     };
 
-    function listView() {
-        function listRowView(row) {
-            var onclick = function () {
-                alert("Selected Poll with id: "+row.id);
-            };
-            return m("div", { "class": "row" }, [
-                m("span", {}, m("input", { "type": "checkbox", onclick: onclick })),
-                m("span", {}, m("a", { "href": router.buildHRef(resource.baseUrl + "/" + row.id) }, row.title))
-            ]);
-        };
-
-        var resourcesList = [];
-        return {
-            oninit: function () {
-                m.request({
-                    method: "GET",
-                    url: app.api.baseUrl + resource.baseUrl,
-                    config: function (xhr) { xhr.withCredentials = false; }
-                })
-                    .then(function (data) {
-                        resourcesList = data;
-                    });
-            },
-            view: function () {
-                return m("div", { "id": "poll", "class": "listView" }, [
-                    m("h1", { "class": "title" }, "Polls"),
-                    m("div", { "class": "header" }, "header"),
-                    m("div", { "class": "rows" }, resourcesList.map(listRowView)),
-                    m("div", { "class": "footer" }, "footer")
-                ]);
-            }
-        };
-    };
-    router.addRoute(resource.baseUrl, "polls", listView);
-
-    function detailView(args) {
-        var resourceId = args.attrs.id;
-        var resourceDetails = {};
-        return {
-            oninit: function () {
-                m.request({
-                    method: "GET",
-                    url: app.api.baseUrl + resource.baseUrl + resourceId,
-                    config: function (xhr) { xhr.withCredentials = false; }
-                })
-                    .then(function (data) {
-                        resourceDetails = data;
-                    });
-            },
-            view: function () {
-                return m("div", { "id": "poll", "class": "detailView" }, [
-                    m("h1", { "class": "title" }, "Poll: '" + resourceDetails.title + "'"),
-                    m("form", { "action": "javascript:void(0);", "class": "pure-form pure-form-aligned" },
-                        m("fieldset", [
-                            m("legend", "Edit details"),
-
-                            app.helpers.forms.renderInput("title", "text", "Title", resourceDetails.title),
-                            app.helpers.forms.renderInput("description", "text", "Description", resourceDetails.description),
-                            app.helpers.forms.renderInput("imageUrl", "text", "ImageUrl", resourceDetails.imageUrl),
-                            //app.helpers.forms.renderInput("options", "text", "Options", resourceDetails.options),
-
-                            app.helpers.forms.renderInput("publishDate", "text", "Publish date", resourceDetails.publishDate),
-                            app.helpers.forms.renderInput("expireDate", "text", "Expire date", resourceDetails.expireDate),
-                            app.helpers.forms.renderInput("status", "text", "Status", resourceDetails.status),
-
-                            app.helpers.forms.renderInput("createdBy", "text", "Created by", resourceDetails.createdBy),
-                            app.helpers.forms.renderInput("createdDate", "text", "Created date", resourceDetails.createdDate),
-                            app.helpers.forms.renderInput("modifiedBy", "text", "Modified by", resourceDetails.modifiedBy),
-                            app.helpers.forms.renderInput("modifiedDate", "text", "Modified date", resourceDetails.modifiedDate),
-
-                            app.helpers.forms.renderInput("update", "button", null, "update")
-                        ]))
-                ]);
-            }
-        };
-    };
-    router.addRoute(resource.baseUrl + "/:id", null, detailView);
+    app.data = data;
 
 })(window);
 
@@ -379,182 +328,34 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
     }
 
     var resource = {
-        baseUrl: "/proposals"
-    };
-
-    function listView() {
-        function listRowView(row) {
-            var onclick = function () {
-                alert("Selected Proposal with id: " + row.id);
-            };
-            return m("div", { "class": "row" }, [
-                m("span", {}, m("input", { "type": "checkbox", onclick: onclick })),
-                m("span", {}, m("a", { "href": router.buildHRef(resource.baseUrl+"/" + row.id) }, row.title))
-            ]);
-        };
-
-        var resourcesList = [];
-        return {
-            oninit: function () {
-                m.request({
-                    method: "GET",
-                    url: app.api.baseUrl + resource.baseUrl,
-                    config: function (xhr) { xhr.withCredentials = false; }
-                })
-                    .then(function (data) {
-                        resourcesList = data;
-                    });
+        router: router,
+        baseUrl: "/articles",
+        listNavLabel: "articles",
+        listViewTitle: "Articles",
+        detailViewId: "article",
+        detailViewTitle: "Article",
+        data: {
+            create: {
+                title: { label: "Title", attributes: { type: "text" } },
+                subtitle: { label: "Subtitle", attributes: { type: "text" } },
+                slug: { label: "Slug", attributes: { type: "text" } },
+                description: { label: "Description", attributes: { type: "text" } },
+                abstract: { label: "Abstract", attributes: { type: "text" } },
+                content: { label: "Content", attributes: { type: "text" } }
             },
-            view: function () {
-                return m("div", { "id": "proposal", "class": "listView" }, [
-                    m("h1", { "class": "title" }, "Proposals"),
-                    m("div", { "class": "header" }, "header"),
-                    m("div", { "class": "rows" }, resourcesList.map(listRowView)),
-                    m("div", { "class": "footer" }, "footer")
-                ]);
+            edit: {
+                title: { label: "Title", attributes: { type: "text" } },
+                subtitle: { label: "Subtitle", attributes: { type: "text" } },
+                slug: { label: "Slug", attributes: { type: "text" } },
+                description: { label: "Description", attributes: { type: "text" } },
+                abstract: { label: "Abstract", attributes: { type: "text" } },
+                content: { label: "Content", attributes: { type: "text" } }
             }
-        };
-    };
-    router.addRoute(resource.baseUrl, "proposals", listView);
-
-    function detailView(args) {
-        var resourceId = args.attrs.id;
-        var resourceDetails = {};
-        return {
-            oninit: function () {
-                m.request({
-                    method: "GET",
-                    url: app.api.baseUrl + resource.baseUrl +"/" + resourceId,
-                    config: function (xhr) { xhr.withCredentials = false; }
-                })
-                    .then(function (data) {
-                        resourceDetails = data;
-                    });
-            },
-            view: function () {
-                return m("div", { "id": "proposal", "class": "detailView" }, [
-                    m("h1", { "class": "title" }, "Proposal: '" + resourceDetails.title + "'"),
-                    m("form", { "action": "javascript:void(0);", "class": "pure-form pure-form-aligned" },
-                        m("fieldset", [
-                            m("legend", "Edit details"),
-
-                            app.helpers.forms.renderInput("title", "text", "Title", resourceDetails.title),
-                            app.helpers.forms.renderInput("subtitle", "text", "Subtitle", resourceDetails.subtitle),
-                            app.helpers.forms.renderInput("slug", "text", "Slug", resourceDetails.slug),
-                            app.helpers.forms.renderInput("description", "text", "Description", resourceDetails.description),
-                            app.helpers.forms.renderInput("abstract", "text", "Abstract", resourceDetails.abstract),
-                            app.helpers.forms.renderInput("content", "text", "Content", resourceDetails.content),
-
-                            app.helpers.forms.renderInput("status", "text", "Status", resourceDetails.status),
-                            app.helpers.forms.renderInput("publishDate", "text", "Publish date", resourceDetails.publishDate),
-                            app.helpers.forms.renderInput("expireDate", "text", "Expire date", resourceDetails.expireDate),
-
-                            app.helpers.forms.renderInput("createdBy", "text", "Created by", resourceDetails.createdBy),
-                            app.helpers.forms.renderInput("createdDate", "text", "Created date", resourceDetails.createdDate),
-                            app.helpers.forms.renderInput("modifiedBy", "text", "Modified by", resourceDetails.modifiedBy),
-                            app.helpers.forms.renderInput("modifiedDate", "text", "Modified date", resourceDetails.modifiedDate),
-
-                            app.helpers.forms.renderInput("update", "button", null, "update")
-                        ]))
-                ]);
-            }
-        };
-    };
-    router.addRoute(resource.baseUrl +"/:id", null, detailView);
-})(window);
-
-
-; (function (w) {
-    var app = w.smoll;
-    if (app === undefined) {
-        throw "initialization order error, smoll is not defined";
-    }
-
-    var router = app.router;
-    if (router === undefined) {
-        throw "initialization order error, router is not defined";
-    }
-
-    var resource = {
-        baseUrl: "/queues"
+        }
     };
 
-    function listView() {
-        function listRowView(row) {
-            var onclick = function () {
-                alert("Selected Queue with id: "+row.id);
-            };
-            return m("div", { "class": "row" }, [
-                m("span", {}, m("input", { "type": "checkbox", onclick: onclick })),
-                m("span", {}, m("a", { "href": router.buildHRef(resource.baseUrl + "/" + row.id) }, row.title))
-            ]);
-        };
-
-        var resourcesList = [];
-        return {
-            oninit: function () {
-                m.request({
-                    method: "GET",
-                    url: app.api.baseUrl + resource.baseUrl,
-                    config: function (xhr) { xhr.withCredentials = false; }
-                })
-                    .then(function (data) {
-                        resourcesList = data;
-                    });
-            },
-            view: function () {
-                return m("div", { "id": "queue", "class": "listView" }, [
-                    m("h1", { "class": "title" }, "Queues"),
-                    m("div", { "class": "header" }, "header"),
-                    m("div", { "class": "rows" }, resourcesList.map(listRowView)),
-                    m("div", { "class": "footer" }, "footer")
-                ]);
-            }
-        };
-    };
-    router.addRoute(resource.baseUrl, "queues", listView);
-
-    function detailView(args) {
-        var resourceId = args.attrs.id;
-        var resourceDetails = {};
-        return {
-            oninit: function () {
-                m.request({
-                    method: "GET",
-                    url: app.api.baseUrl + resource.baseUrl + resourceId,
-                    config: function (xhr) { xhr.withCredentials = false; }
-                })
-                    .then(function (data) {
-                        resourceDetails = data;
-                    });
-            },
-            view: function () {
-                return m("div", { "id": "queue", "class": "detailView" }, [
-                    m("h1", { "class": "title" }, "Queue: '" + resourceDetails.title + "'"),
-                    m("form", { "action": "javascript:void(0);", "class": "pure-form pure-form-aligned" },
-                        m("fieldset", [
-                            m("legend", "Edit details"),
-
-                            app.helpers.forms.renderInput("title", "text", "Title", resourceDetails.title),
-                            app.helpers.forms.renderInput("description", "text", "Description", resourceDetails.description),
-                            //app.helpers.forms.renderInput("options", "text", "Options", resourceDetails.options),
-
-                            app.helpers.forms.renderInput("publishDate", "text", "Publish date", resourceDetails.publishDate),
-                            app.helpers.forms.renderInput("expireDate", "text", "Expire date", resourceDetails.expireDate),
-                            app.helpers.forms.renderInput("status", "text", "Status", resourceDetails.status),
-
-                            app.helpers.forms.renderInput("createdBy", "text", "Created by", resourceDetails.createdBy),
-                            app.helpers.forms.renderInput("createdDate", "text", "Created date", resourceDetails.createdDate),
-                            app.helpers.forms.renderInput("modifiedBy", "text", "Modified by", resourceDetails.modifiedBy),
-                            app.helpers.forms.renderInput("modifiedDate", "text", "Modified date", resourceDetails.modifiedDate),
-
-                            app.helpers.forms.renderInput("update", "button", null, "update")
-                        ]))
-                ]);
-            }
-        };
-    };
-    router.addRoute(resource.baseUrl + "/:id", null, detailView);
+    router.addRoute(resource.baseUrl, resource.listNavLabel, app.helpers.views.listView(resource));
+    router.addRoute(resource.baseUrl + "/:id", null, app.helpers.views.detailView(resource));
 
 })(window);
 
@@ -571,85 +372,137 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
     }
 
     var resource = {
-        baseUrl: "/suggestions"
-    };
-
-    function listView() {
-        function listRowView(row) {
-            var onclick = function () {
-                alert("Selected Suggestion with id: "+row.id);
-            };
-            return m("div", { "class": "row" }, [
-                m("span", {}, m("input", { "type": "checkbox", onclick: onclick })),
-                m("span", {}, m("a", { "href": router.buildHRef(resource.baseUrl + "/" + row.id) }, row.title))
-            ]);
-        };
-
-        var resourcesList = [];
-        return {
-            oninit: function () {
-                m.request({
-                    method: "GET",
-                    url: app.api.baseUrl + resource.baseUrl,
-                    config: function (xhr) { xhr.withCredentials = false; }
-                })
-                    .then(function (data) {
-                        resourcesList = data;
-                    });
+        router: router,
+        baseUrl: "/polls",
+        listViewTitle: "Polls",
+        listNavLabel: "polls",
+        data: {
+            create: {
+                title: { label: "Title", attributes: { type: "text" } },
+                description: { label: "Description", attributes: { type: "text" } },
+                imageUrl: { label: "ImageUrl", attributes: { type: "text" } }
             },
-            view: function () {
-                return m("div", { "id": "suggestion", "class": "listView" }, [
-                    m("h1", { "class": "title" }, "Suggestions"),
-                    m("div", { "class": "header" }, "header"),
-                    m("div", { "class": "rows" }, resourcesList.map(listRowView)),
-                    m("div", { "class": "footer" }, "footer")
-                ]);
+            edit: {
+                title: { label: "Title", attributes: { type: "text" } },
+                description: { label: "Description", attributes: { type: "text" } },
+                imageUrl: { label: "ImageUrl", attributes: { type: "text" } }
             }
-        };
+        }
     };
-    router.addRoute(resource.baseUrl, "suggestions", listView);
 
-    function detailView(args) {
-        var resourceId = args.attrs.id;
-        var resourceDetails = {};
-        return {
-            oninit: function () {
-                m.request({
-                    method: "GET",
-                    url: app.api.baseUrl + resource.baseUrl + resourceId,
-                    config: function (xhr) { xhr.withCredentials = false; }
-                })
-                    .then(function (data) {
-                        resourceDetails = data;
-                    });
+    router.addRoute(resource.baseUrl, resource.listNavLabel, app.helpers.views.listView(resource));
+    router.addRoute(resource.baseUrl + "/:id", null, app.helpers.views.detailView(resource));
+
+})(window);
+
+
+; (function (w) {
+
+    var app = w.smoll;
+    if (app === undefined) {
+        throw "initialization order error, smoll is not defined";
+    }
+
+    var router = app.router;
+    if (router === undefined) {
+        throw "initialization order error, router is not defined";
+    }
+
+    var resource = {
+        router: router,
+        baseUrl: "/proposals",
+        listViewTitle: "Proposals",
+        listNavLabel: "proposals",
+        data: {
+            create: {
+                title: { type: "text", label: "Title" },
+                subtitle: { type: "text", label: "Subtitle" },
+                slug: { type: "text", label: "Slug" },
+                description: { type: "text", label: "Description" },
+                abstract: { type: "text", label: "Abstract" },
+                content: { type: "text", label: "Content" }
             },
-            view: function () {
-                return m("div", { "id": "suggestion", "class": "detailView" }, [
-                    m("h1", { "class": "title" }, "Suggestion: '" + resourceDetails.title + "'"),
-                    m("form", { "action": "javascript:void(0);", "class": "pure-form pure-form-aligned" },
-                        m("fieldset", [
-                            m("legend", "Edit details"),
-
-                            app.helpers.forms.renderInput("title", "text", "Title", resourceDetails.title),
-                            app.helpers.forms.renderInput("description", "text", "Description", resourceDetails.description),
-                            //app.helpers.forms.renderInput("options", "text", "Options", resourceDetails.options),
-
-                            app.helpers.forms.renderInput("publishDate", "text", "Publish date", resourceDetails.publishDate),
-                            app.helpers.forms.renderInput("expireDate", "text", "Expire date", resourceDetails.expireDate),
-                            app.helpers.forms.renderInput("status", "text", "Status", resourceDetails.status),
-
-                            app.helpers.forms.renderInput("createdBy", "text", "Created by", resourceDetails.createdBy),
-                            app.helpers.forms.renderInput("createdDate", "text", "Created date", resourceDetails.createdDate),
-                            app.helpers.forms.renderInput("modifiedBy", "text", "Modified by", resourceDetails.modifiedBy),
-                            app.helpers.forms.renderInput("modifiedDate", "text", "Modified date", resourceDetails.modifiedDate),
-
-                            app.helpers.forms.renderInput("update", "button", null, "update")
-                        ]))
-                ]);
+            edit: {
+                title: { type: "text", label: "Title" },
+                subtitle: { type: "text", label: "Subtitle" },
+                slug: { type: "text", label: "Slug" },
+                description: { type: "text", label: "Description" },
+                abstract: { type: "text", label: "Abstract" },
+                content: { type: "text", label: "Content" }
             }
-        };
+        }
     };
-    router.addRoute(resource.baseUrl + "/:id", null, detailView);
+
+    router.addRoute(resource.baseUrl, resource.listNavLabel, app.helpers.views.listView(resource));
+    router.addRoute(resource.baseUrl + "/:id", null, app.helpers.views.detailView(resource));
+
+})(window);
+
+
+; (function (w) {
+    var app = w.smoll;
+    if (app === undefined) {
+        throw "initialization order error, smoll is not defined";
+    }
+
+    var router = app.router;
+    if (router === undefined) {
+        throw "initialization order error, router is not defined";
+    }
+
+    var resource = {
+        router: router,
+        baseUrl: "/queues",
+        listViewTitle: "Queues",
+        listNavLabel: "queues",
+        data: {
+            create: {
+                title: { type: "text", label: "Title" },
+                description: { type: "text", label: "Description" }
+            },
+            edit: {
+                title: { type: "text", label: "Title" },
+                description: { type: "text", label: "Description" }
+            }
+        }
+    };
+
+    router.addRoute(resource.baseUrl, resource.listNavLabel, app.helpers.views.listView(resource));
+    router.addRoute(resource.baseUrl + "/:id", null, app.helpers.views.detailView(resource));
+
+})(window);
+
+
+; (function (w) {
+    var app = w.smoll;
+    if (app === undefined) {
+        throw "initialization order error, smoll is not defined";
+    }
+
+    var router = app.router;
+    if (router === undefined) {
+        throw "initialization order error, router is not defined";
+    }
+
+    var resource = {
+        router: router,
+        baseUrl: "/suggestions",
+        listViewTitle: "Suggestions",
+        listNavLabel: "suggestions",
+        data: {
+            create: {
+                title: { type: "text", label: "Title" },
+                description: { type: "text", label: "Description" }
+            },
+            edit: {
+                title: { type: "text", label: "Title" },
+                description: { type: "text", label: "Description" }
+            }
+        }
+    };
+
+    router.addRoute(resource.baseUrl, resource.listNavLabel, app.helpers.views.listView(resource));
+    router.addRoute(resource.baseUrl + "/:id", null, app.helpers.views.detailView(resource));
 
 })(window);
 

@@ -20,6 +20,7 @@
 
       "application/app.js",
       "application/router.js",
+      "application/data.js",
 
       "application/article.js",
       "application/poll.js",
