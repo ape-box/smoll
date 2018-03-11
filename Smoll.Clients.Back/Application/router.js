@@ -1,10 +1,9 @@
 ﻿
 ; (function (w) {
 
-    var app = w.smoll;
-    if (app === undefined) {
-        throw "initialization order error, smoll is not defined";
-    }
+
+    var views = w.smoll.views;
+    var strPlural = w.smoll.strPlural;
 
     var router = {
         routes: [],
@@ -64,13 +63,12 @@
             }
         },
         registerResource: function (resourceDef) {
-            router.addRoute(resourceDef.baseUrl, app.helpers.resources.strPlural(resourceDef.name), app.helpers.views.listView(resourceDef));
-            router.addRoute(resourceDef.baseUrl + "/new", null, app.helpers.views.createView(resourceDef));
-            router.addRoute(resourceDef.baseUrl + "/:id", null, app.helpers.views.editView(resourceDef));
+            router.addRoute(resourceDef.baseUrl, strPlural(resourceDef.name), views.list(resourceDef));
+            router.addRoute(resourceDef.baseUrl + "/new", null, views.new(resourceDef));
+            router.addRoute(resourceDef.baseUrl + "/:id", null, views.edit(resourceDef));
         }
     };
 
-    app.router = router;
-    w.smoll = app;
+    w.smoll.router = router;
 
 })(window);

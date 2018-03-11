@@ -1,11 +1,6 @@
 ﻿
 ; (function (w) {
 
-    var app = w.smoll;
-    if (app === undefined) {
-        throw "initialization order error, smoll is not defined";
-    }
-
     var data = {
         entityStats: {
             create: {},
@@ -30,6 +25,5 @@
         }
     };
 
-    app.data = data;
-
+    w.smoll.data = data;
 })(window);

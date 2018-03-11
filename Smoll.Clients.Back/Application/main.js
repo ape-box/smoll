@@ -1,15 +1,7 @@
 ﻿
 ; (function (w, m) {
 
-    var app = w.smoll;
-    if (typeof(app) !== "object" || app === null) {
-        throw "initialization order error, smoll is not defined";
-    }
-
-    var router = app.router;
-    if (typeof(router) !== "object" || router === null) {
-        throw "initialization order error, router is not defined";
-    }
+    var router = w.smoll.router;
 
     var navigationItemView = function (item) {
         return m("a",

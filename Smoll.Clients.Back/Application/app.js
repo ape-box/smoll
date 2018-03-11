@@ -25,23 +25,23 @@
                 return out;
             },
             forms: {
-                renderForm: function (definition, data) {
+                renderForm: function (definition, data, handler) {
                     var fields = [];
                     for (var name in definition) {
-                        if (data[name] === null) {
-                            data[name] = null;
+                        if (definition.hasOwnProperty(name)) {
+                            if (data[name] === null) {
+                                data[name] = null;
+                            }
+                            (function(resource, attrName) {
+                                fields.push(
+                                    app.helpers.forms.renderInput(
+                                        attrName,
+                                        definition[attrName]["label"],
+                                        definition[attrName]["attributes"],
+                                        resource[attrName],
+                                        handler));
+                            })(data, name);
                         }
-                        (function (resource, attrName) {
-                            fields.push(
-                                app.helpers.forms.renderInput(
-                                    attrName,
-                                    definition[attrName]["label"],
-                                    definition[attrName]["attributes"],
-                                    resource[attrName],
-                                    function (value) {
-                                        resource[attrName] = value;
-                                    }));
-                        })(data, name);
                     }
 
                     return fields;
@@ -58,7 +58,9 @@
                                     type: "text",
                                     name: name,
                                     placeholder: label,
-                                    oninput: m.withAttr("value", oninputHandler),
+                                    oninput: m.withAttr("value", function (v) {
+                                        oninputHandler.call(null, name, v);
+                                    }),
                                     value: value
                                 });
                             childs.push(m("input", attributes));
@@ -197,7 +199,11 @@
                                     m("form", { "action": "javascript:void(0);", "class": "pure-form pure-form-aligned" },
                                         m("fieldset",  [].concat(
                                             m("legend", "Edit details"),
-                                            app.helpers.forms.renderForm(resourceDef.data.create, resource),
+                                            app.helpers.forms.renderForm(resourceDef.data.create, resource, function(attr, value) {
+                                                console.log(resource);
+                                                resource[name] = value;
+                                                console.log(resource);
+                                            }),
                                             app.helpers.forms.renderForm(app.data.publishable.edit, resource),
                                             app.helpers.forms.renderInput("save", null,
                                                 {

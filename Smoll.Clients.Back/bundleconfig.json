@@ -16,19 +16,15 @@
   {
     "outputFileName": "wwwroot/js/site.js",
     "inputFiles": [
-      "wwwroot/lib/mithril/mithril.min.js",
+        "wwwroot/lib/mithril/mithril.min.js",
 
-      "application/app.js",
-      "application/router.js",
-      "application/data.js",
+        "application/app.js",
+        "application/app.*.js",
+        "application/router.js",
 
-      "application/article.js",
-      "application/poll.js",
-      "application/proposal.js",
-      "application/queue.js",
-      "application/suggestion.js",
+        "application/entities/*.js",
 
-      "application/main.js"
+        "application/main.js"
     ],
     "minify": {
       "enabled": false,
