@@ -158,7 +158,7 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
 
     var extend = w.smoll.extend;
 
-    var renderInput = function (name, label, attributes, value, oninputHandler) {
+    var renderInput = function (name, label, attributes, valueField) {
         var childs = [];
         if (label !== null) {
             childs.push(m("label", { "for": name }, label));
@@ -171,9 +171,9 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
                         name: name,
                         placeholder: label,
                         oninput: m.withAttr("value", function (v) {
-                            oninputHandler.call(null, name, v);
+                            valueField.set(name, v);
                         }),
-                        value: value
+                        value: valueField.get()
                     });
                 childs.push(m("input", attributes));
                 return m("div", { "class": "pure-control-group" }, childs);
@@ -184,7 +184,7 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
                         name: name,
                         "class": "pure-button pure-button-primary"
                     });
-                childs.push(m("button", attributes, value));
+                childs.push(m("button", attributes, valueField.get()));
                 return m("div", { "class": "pure-controls" }, childs);
             default:
                 throw "missing attribute type in rendering input";
@@ -199,7 +199,7 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
 
     var renderInput = w.smoll.forms.renderInput;
 
-    var renderForm = function(definition, data, handler) {
+    var renderForm = function(definition, data) {
         var fields = [];
         for (var name in definition) {
             if (definition.hasOwnProperty(name)) {
@@ -212,8 +212,10 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
                             attrName,
                             definition[attrName]["label"],
                             definition[attrName]["attributes"],
-                            resource[attrName],
-                            handler));
+                            {
+                                get: function () { return resource[attrName]; },
+                                set: function (name, value) { resource[name] = value; }
+                            }));
                 })(data, name);
             }
         }
@@ -339,29 +341,30 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
 
     var edit = function (resourceDef) {
         return function (args) {
+            var resource = {};
             var resourceId = args.attrs.id;
-            var resourceDetails = {};
             return {
                 oninit: function () {
-                    return rest.get(api.getFullUrl(resourceDef.baseUrl, resourceId), function (data) { resourceDetails = data; });
+                    return rest.get(api.getFullUrl(resourceDef.baseUrl, resourceId), function (data) { resource = data; });
                 },
                 view: function () {
                     return m("div", { "id": resourceDef.name, "class": "editView" }, [
-                        m("h1", { "class": "title" }, strPascal(resourceDef.name) + ": '" + resourceDetails.title + "'"),
+                        m("h1", { "class": "title" }, strPascal(resourceDef.name) + ": '" + resource.title + "'"),
                         m("form", { "action": "javascript:void(0);", "class": "pure-form pure-form-aligned" },
                             m("fieldset",  [].concat(
                                 m("legend", "Edit details"),
-                                renderForm(resourceDef.data.edit, resourceDetails),
-                                renderForm(data.publishable.edit, resourceDetails),
-                                renderForm(data.entityStats.edit, resourceDetails),
+                                renderForm(resourceDef.data.edit, resource),
+                                renderForm(data.publishable.edit, resource),
+                                renderForm(data.entityStats.edit, resource),
                                 renderInput("update", null,
                                     {
                                         type: "button",
                                         onclick: function () {
                                             console.info("Resource Edit's update");
-                                            console.log(resourceDetails);
+                                            console.log(resource);
                                         }
-                                    }, "update")
+                                    },
+                                    { get: function () { return "update"; }})
                             )))
                     ]);
                 }
@@ -383,19 +386,15 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
 
     var newResource = function (resourceDef) {
         return function () {
+            var resource = {};
             return {
                 view: function () {
-                    var resource = {};
                     return m("div", { "id": resourceDef.name, "class": "createView" }, [
                         m("h1", { "class": "title" }, strPascal(resourceDef.name) + ": create new"),
                         m("form", { "action": "javascript:void(0);", "class": "pure-form pure-form-aligned" },
                             m("fieldset",  [].concat(
                                 m("legend", "Edit details"),
-                                renderForm(resourceDef.data.create, resource, function(attr, value) {
-                                    console.log(resource);
-                                    resource[name] = value;
-                                    console.log(resource);
-                                }),
+                                renderForm(resourceDef.data.create, resource),
                                 renderForm(data.publishable.edit, resource),
                                 renderInput("save", null,
                                     {
@@ -404,7 +403,10 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
                                             console.info("Resource New's save");
                                             console.log(resource);
                                         }
-                                    }, "save")
+                                    },
+                                    {
+                                        get: function () { return "save"; }
+                                    })
                             )))
                     ]);
                 }

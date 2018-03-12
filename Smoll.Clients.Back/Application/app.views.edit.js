@@ -10,29 +10,30 @@
 
     var edit = function (resourceDef) {
         return function (args) {
+            var resource = {};
             var resourceId = args.attrs.id;
-            var resourceDetails = {};
             return {
                 oninit: function () {
-                    return rest.get(api.getFullUrl(resourceDef.baseUrl, resourceId), function (data) { resourceDetails = data; });
+                    return rest.get(api.getFullUrl(resourceDef.baseUrl, resourceId), function (data) { resource = data; });
                 },
                 view: function () {
                     return m("div", { "id": resourceDef.name, "class": "editView" }, [
-                        m("h1", { "class": "title" }, strPascal(resourceDef.name) + ": '" + resourceDetails.title + "'"),
+                        m("h1", { "class": "title" }, strPascal(resourceDef.name) + ": '" + resource.title + "'"),
                         m("form", { "action": "javascript:void(0);", "class": "pure-form pure-form-aligned" },
                             m("fieldset",  [].concat(
                                 m("legend", "Edit details"),
-                                renderForm(resourceDef.data.edit, resourceDetails),
-                                renderForm(data.publishable.edit, resourceDetails),
-                                renderForm(data.entityStats.edit, resourceDetails),
+                                renderForm(resourceDef.data.edit, resource),
+                                renderForm(data.publishable.edit, resource),
+                                renderForm(data.entityStats.edit, resource),
                                 renderInput("update", null,
                                     {
                                         type: "button",
                                         onclick: function () {
                                             console.info("Resource Edit's update");
-                                            console.log(resourceDetails);
+                                            console.log(resource);
                                         }
-                                    }, "update")
+                                    },
+                                    { get: function () { return "update"; }})
                             )))
                     ]);
                 }

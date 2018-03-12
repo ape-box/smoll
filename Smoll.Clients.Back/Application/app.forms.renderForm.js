@@ -3,7 +3,7 @@
 
     var renderInput = w.smoll.forms.renderInput;
 
-    var renderForm = function(definition, data, handler) {
+    var renderForm = function(definition, data) {
         var fields = [];
         for (var name in definition) {
             if (definition.hasOwnProperty(name)) {
@@ -16,8 +16,10 @@
                             attrName,
                             definition[attrName]["label"],
                             definition[attrName]["attributes"],
-                            resource[attrName],
-                            handler));
+                            {
+                                get: function () { return resource[attrName]; },
+                                set: function (name, value) { resource[name] = value; }
+                            }));
                 })(data, name);
             }
         }
