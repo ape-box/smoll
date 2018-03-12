@@ -31,6 +31,13 @@
                                         onclick: function () {
                                             console.info("Resource Edit's update");
                                             console.log(resource);
+                                            console.log("Saving ...");
+                                            rest.put(api.getFullUrl(resourceDef.baseUrl, resourceId), resource, function (a, b, c) {
+                                                console.log("Callback");
+                                                console.log(a);
+                                                console.log(b);
+                                                console.log(c);
+                                            });
                                         }
                                     },
                                     { get: function () { return "update"; }})

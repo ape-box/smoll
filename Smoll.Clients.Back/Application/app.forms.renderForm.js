@@ -10,16 +10,27 @@
                 if (data[name] === null) {
                     data[name] = null;
                 }
-                (function(resource, attrName) {
+                (function (resource, attrName) {
+                    var valueField = null;
+                    switch (definition[attrName]["attributes"]["type"]) {
+                        case "radio":
+                            console.log(name + "=" + definition[attrName]["attributes"]["type"]);
+                            valueField = definition[attrName]["values"];
+                            break;
+                        default:
+                            valueField = {
+                                get: function () { return resource[attrName]; },
+                                set: function (name, value) { resource[name] = value; }
+                            };
+                    }
+
                     fields.push(
                         renderInput(
                             attrName,
                             definition[attrName]["label"],
                             definition[attrName]["attributes"],
-                            {
-                                get: function () { return resource[attrName]; },
-                                set: function (name, value) { resource[name] = value; }
-                            }));
+                            valueField
+                        ));
                 })(data, name);
             }
         }

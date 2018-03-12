@@ -97,7 +97,7 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
     var api = {
         baseUrl: "http://localhost:62218/api/v1",
         getFullUrl: function () {
-            return api.baseUrl + "/" + Array.prototype.slice.call(arguments).join("/");
+            return api.baseUrl + Array.prototype.slice.call(arguments).join("/");
         }
     };
 
@@ -124,7 +124,7 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
                 })
                 .then(callback);
         },
-        post: function(resourceUrl, callback) {
+        post: function (resourceUrl, resource, callback) {
             if (typeof (resourceUrl) !== "string") {
                 throw "resourceUrl must be a string";
             }
@@ -133,11 +133,28 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
             }
 
             return m.request({
-                    method: "POST",
-                    url: resourceUrl,
-                    config: function(xhr) { xhr.withCredentials = false; }
-                })
-                .then(callback);
+                method: "POST",
+                url: resourceUrl,
+                data: resource,
+                config: function(xhr) { xhr.withCredentials = false; }
+            })
+            .then(callback);
+        },
+        put: function (resourceUrl, resource, callback) {
+            if (typeof (resourceUrl) !== "string") {
+                throw "resourceUrl must be a string";
+            }
+            if (typeof (callback) !== "function") {
+                throw "callback must be a function";
+            }
+
+            return m.request({
+                method: "PUT",
+                url: resourceUrl,
+                data: resource,
+                config: function(xhr) { xhr.withCredentials = false; }
+            })
+            .then(callback);
         }
     };
 
@@ -160,14 +177,13 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
 
     var renderInput = function (name, label, attributes, valueField) {
         var childs = [];
-        if (label !== null) {
-            childs.push(m("label", { "for": name }, label));
-        }
         switch (attributes["type"]) {
             case "text":
+                if (label !== null) {
+                    childs.push(m("label", { "for": name }, label));
+                }
                 extend(attributes,
                     {
-                        type: "text",
                         name: name,
                         placeholder: label,
                         oninput: m.withAttr("value", function (v) {
@@ -176,6 +192,31 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
                         value: valueField.get()
                     });
                 childs.push(m("input", attributes));
+                return m("div", { "class": "pure-control-group" }, childs);
+            case "radio":
+                if (typeof (label) !== "string") {
+                    throw "Missing label definition for radio " + name;
+                }
+
+                childs.push(m("label", { "for": name }, label));
+
+                var options = [];
+                for (var opt in valueField) {
+                    if (valueField.hasOwnProperty(opt)) {
+                        var option = m("input",
+                            extend({}, attributes,
+                            {
+                                name: name,
+                                oninput: m.withAttr("value", function (v) {
+                                    valueField.set(name, v);
+                                }),
+                                value: valueField[opt]
+                            }), null);
+                        options.push(m("label", { "for": name }, [option, opt]));
+                    }
+                }
+                childs.push(m("div", { "class": "pure-radio" }, options));
+
                 return m("div", { "class": "pure-control-group" }, childs);
             case "submit":
             case "button":
@@ -206,16 +247,27 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
                 if (data[name] === null) {
                     data[name] = null;
                 }
-                (function(resource, attrName) {
+                (function (resource, attrName) {
+                    var valueField = null;
+                    switch (definition[attrName]["attributes"]["type"]) {
+                        case "radio":
+                            console.log(name + "=" + definition[attrName]["attributes"]["type"]);
+                            valueField = definition[attrName]["values"];
+                            break;
+                        default:
+                            valueField = {
+                                get: function () { return resource[attrName]; },
+                                set: function (name, value) { resource[name] = value; }
+                            };
+                    }
+
                     fields.push(
                         renderInput(
                             attrName,
                             definition[attrName]["label"],
                             definition[attrName]["attributes"],
-                            {
-                                get: function () { return resource[attrName]; },
-                                set: function (name, value) { resource[name] = value; }
-                            }));
+                            valueField
+                        ));
                 })(data, name);
             }
         }
@@ -229,31 +281,39 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
 
 ; (function (w) {
 
-    var data = {
-        entityStats: {
-            create: {},
-            edit: {
-                createdBy: { label: "Created by", attributes: { type: "text", readonly: "readonly" } },
-                createdDate: { label: "Created date", attributes: { type: "text", readonly: "readonly" } },
-                modifiedBy: { label: "Modified by", attributes: { type: "text", readonly: "readonly" } },
-                modifiedDate: { label: "Modified date", attributes: { type: "text", readonly: "readonly" } }
-            }
-        },
-        publishable: {
-            create: {
-                status: { label: "Status", attributes: { type: "text" } },
-                publishDate: { label: "Publish date", attributes: { type: "text" } },
-                expireDate: { label: "Expire date", attributes: { type: "text" } }
-            },
-            edit: {
-                status: { label: "Status", attributes: { type: "text" } },
-                publishDate: { label: "Publish date", attributes: { type: "text" } },
-                expireDate: { label: "Expire date", attributes: { type: "text" } }
-            }
+    w.smoll.data = {};
+
+    w.smoll.data.definitions = {
+        status: {
+            Draft: 0,
+            Published: 1,
+            Archived: 2,
+            TakenDown: 3
         }
     };
 
-    w.smoll.data = data;
+    w.smoll.data.entityStats = {
+        create: {},
+        edit: {
+            createdBy: { label: "Created by", attributes: { type: "text", readonly: "readonly" } },
+            createdDate: { label: "Created date", attributes: { type: "text", readonly: "readonly" } },
+            modifiedBy: { label: "Modified by", attributes: { type: "text", readonly: "readonly" } },
+            modifiedDate: { label: "Modified date", attributes: { type: "text", readonly: "readonly" } }
+        }
+    };
+
+    w.smoll.data.publishable = {
+        create: {
+            status: { label: "Status", attributes: { type: "radio" }, values: w.smoll.data.definitions.status },
+            publishDate: { label: "Publish date", attributes: { type: "text" } },
+            expireDate: { label: "Expire date", attributes: { type: "text" } }
+        },
+        edit: {
+            status: { label: "Status", attributes: { type: "radio" }, values: w.smoll.data.definitions.status },
+            publishDate: { label: "Publish date", attributes: { type: "text" } },
+            expireDate: { label: "Expire date", attributes: { type: "text" } }
+        }
+    };
 
 })(window);
 
@@ -362,6 +422,13 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
                                         onclick: function () {
                                             console.info("Resource Edit's update");
                                             console.log(resource);
+                                            console.log("Saving ...");
+                                            rest.put(api.getFullUrl(resourceDef.baseUrl, resourceId), resource, function (a, b, c) {
+                                                console.log("Callback");
+                                                console.log(a);
+                                                console.log(b);
+                                                console.log(c);
+                                            });
                                         }
                                     },
                                     { get: function () { return "update"; }})
@@ -379,7 +446,9 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
 
 ; (function (w) {
 
+    var api = w.smoll.api;
     var data = w.smoll.data;
+    var rest = w.smoll.rest;
     var strPascal = w.smoll.strPascal;
     var renderForm = w.smoll.forms.renderForm;
     var renderInput = w.smoll.forms.renderInput;
@@ -402,11 +471,16 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
                                         onclick: function () {
                                             console.info("Resource New's save");
                                             console.log(resource);
+                                            console.log("Saving ...");
+                                            rest.post(api.getFullUrl(resourceDef.baseUrl), resource, function (a, b, c) {
+                                                console.log("Callback");
+                                                console.log(a);
+                                                console.log(b);
+                                                console.log(c);
+                                            });
                                         }
                                     },
-                                    {
-                                        get: function () { return "save"; }
-                                    })
+                                    { get: function () { return "save"; }})
                             )))
                     ]);
                 }

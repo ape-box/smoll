@@ -1,7 +1,9 @@
 ﻿
 ; (function (w) {
 
+    var api = w.smoll.api;
     var data = w.smoll.data;
+    var rest = w.smoll.rest;
     var strPascal = w.smoll.strPascal;
     var renderForm = w.smoll.forms.renderForm;
     var renderInput = w.smoll.forms.renderInput;
@@ -24,11 +26,16 @@
                                         onclick: function () {
                                             console.info("Resource New's save");
                                             console.log(resource);
+                                            console.log("Saving ...");
+                                            rest.post(api.getFullUrl(resourceDef.baseUrl), resource, function (a, b, c) {
+                                                console.log("Callback");
+                                                console.log(a);
+                                                console.log(b);
+                                                console.log(c);
+                                            });
                                         }
                                     },
-                                    {
-                                        get: function () { return "save"; }
-                                    })
+                                    { get: function () { return "save"; }})
                             )))
                     ]);
                 }

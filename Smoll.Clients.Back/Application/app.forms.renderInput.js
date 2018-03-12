@@ -5,14 +5,13 @@
 
     var renderInput = function (name, label, attributes, valueField) {
         var childs = [];
-        if (label !== null) {
-            childs.push(m("label", { "for": name }, label));
-        }
         switch (attributes["type"]) {
             case "text":
+                if (label !== null) {
+                    childs.push(m("label", { "for": name }, label));
+                }
                 extend(attributes,
                     {
-                        type: "text",
                         name: name,
                         placeholder: label,
                         oninput: m.withAttr("value", function (v) {
@@ -21,6 +20,31 @@
                         value: valueField.get()
                     });
                 childs.push(m("input", attributes));
+                return m("div", { "class": "pure-control-group" }, childs);
+            case "radio":
+                if (typeof (label) !== "string") {
+                    throw "Missing label definition for radio " + name;
+                }
+
+                childs.push(m("label", { "for": name }, label));
+
+                var options = [];
+                for (var opt in valueField) {
+                    if (valueField.hasOwnProperty(opt)) {
+                        var option = m("input",
+                            extend({}, attributes,
+                            {
+                                name: name,
+                                oninput: m.withAttr("value", function (v) {
+                                    valueField.set(name, v);
+                                }),
+                                value: valueField[opt]
+                            }), null);
+                        options.push(m("label", { "for": name }, [option, opt]));
+                    }
+                }
+                childs.push(m("div", { "class": "pure-radio" }, options));
+
                 return m("div", { "class": "pure-control-group" }, childs);
             case "submit":
             case "button":
