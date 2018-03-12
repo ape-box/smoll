@@ -48,355 +48,12 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
 ; (function (w) {
 
     var app = {
-        api: {
-            baseUrl: "http://localhost:62218/api/v1",
-            getFullUrl: function () {
-                return app.api.baseUrl + "/" + Array.prototype.slice.call(arguments).join("/");
-            }
-        },
-        helpers: {
-            extend: function (out) {
-                out = out || {};
-
-                for (var i = 1; i < arguments.length; i++) {
-                    if (!arguments[i])
-                        continue;
-
-                    for (var key in arguments[i]) {
-                        if (arguments[i].hasOwnProperty(key))
-                            out[key] = arguments[i][key];
-                    }
-                }
-
-                return out;
-            },
-            forms: {
-                renderForm: function (definition, data, handler) {
-                    var fields = [];
-                    for (var name in definition) {
-                        if (definition.hasOwnProperty(name)) {
-                            if (data[name] === null) {
-                                data[name] = null;
-                            }
-                            (function(resource, attrName) {
-                                fields.push(
-                                    app.helpers.forms.renderInput(
-                                        attrName,
-                                        definition[attrName]["label"],
-                                        definition[attrName]["attributes"],
-                                        resource[attrName],
-                                        handler));
-                            })(data, name);
-                        }
-                    }
-
-                    return fields;
-                },
-                renderInput: function (name, label, attributes, value, oninputHandler) {
-                    var childs = [];
-                    if (label !== null) {
-                        childs.push(m("label", { "for": name }, label));
-                    }
-                    switch (attributes["type"]) {
-                        case "text":
-                            app.helpers.extend(attributes,
-                                {
-                                    type: "text",
-                                    name: name,
-                                    placeholder: label,
-                                    oninput: m.withAttr("value", function (v) {
-                                        oninputHandler.call(null, name, v);
-                                    }),
-                                    value: value
-                                });
-                            childs.push(m("input", attributes));
-                            return m("div", { "class": "pure-control-group" }, childs);
-                        case "submit":
-                        case "button":
-                            app.helpers.extend(attributes,
-                                {
-                                    name: name,
-                                    "class": "pure-button pure-button-primary"
-                                });
-                            childs.push(m("button", attributes, value));
-                            return m("div", { "class": "pure-controls" }, childs);
-                        default:
-                            throw "missing attribute type in rendering input";
-                    }
-                }
-            },
-            resources: {
-                strPlural: function (resourceName) {
-                    return resourceName.toLowerCase() + "s";
-                },
-                strPascal: function (resourceName) {
-                    return resourceName.charAt(0).toUpperCase() + resourceName.slice(1).toLowerCase();
-                },
-                strPascals: function (resourceName) {
-                    return resourceName.charAt(0).toUpperCase() + resourceName.slice(1).toLowerCase() + "s";
-                },
-                createId: function (resourceName) {},
-                createTitle: function (resourceName) { },
-                restGetFn: function (resourceUrl, callback) {
-                    if (typeof (resourceUrl) !== "string") {
-                        throw "resourceUrl must be a string";
-                    }
-                    if (typeof (callback) !== "function") {
-                        throw "callback must be a function";
-                    }
-
-                    return m.request({
-                        method: "GET",
-                        url: resourceUrl,
-                        config: function (xhr) { xhr.withCredentials = false; }
-                    })
-                    .then(callback);
-                },
-                restPostFn: function (resourceUrl, callback) {
-                    if (typeof (resourceUrl) !== "string") {
-                        throw "resourceUrl must be a string";
-                    }
-                    if (typeof (callback) !== "function") {
-                        throw "callback must be a function";
-                    }
-
-                    return m.request({
-                        method: "POST",
-                        url: resourceUrl,
-                        config: function (xhr) { xhr.withCredentials = false; }
-                    })
-                    .then(callback);
-                }
-            },
-            views: {
-                listRowViewFn: function (router, resourceBaseUrl) {
-                    return function (row) {
-                        var onclick = function () {
-                            alert("Selected resource with id: " + row.id);
-                        };
-                        return m("div", { "class": "row" }, [
-                            m("span", {}, m("input", { "type": "checkbox", onclick: onclick })),
-                            m("span", {}, m("a", { "href": router.buildHRef(resourceBaseUrl + "/" + row.id) }, row.title))
-                        ]);
-                    }
-                },
-                listViewFn: function (title, router, resourceBaseUrl, rowsNodes) {
-                    return m("div", { "id": "article", "class": "listView" }, [
-                        m("h1", { "class": "title" }, title),
-                        m("div", { "class": "header" }, "header"),
-                        m("div", { "class": "rows" }, rowsNodes),
-                        m("div", { "class": "footer" }, [
-                            m("span", { "class": "label" }, "actions"),
-                            m("span", { "class": "actions" }, m("a", { "href": router.buildHRef(resourceBaseUrl + "/new"), "class": "pure-button" }, "new"))])
-                    ]);
-                },
-                listView: function (resourceDef) {
-                    return function () {
-                        var resourcesList = [];
-                        return {
-                            oninit: function () {
-                                return app.helpers.resources.restGetFn(app.api.getFullUrl(resourceDef.baseUrl), function (data) { resourcesList = data; });
-                            },
-                            view: function () {
-                                var rows = resourcesList.map(app.helpers.views.listRowViewFn(resourceDef.router, resourceDef.baseUrl));
-                                return app.helpers.views.listViewFn(app.helpers.resources.strPascals(resourceDef.name), resourceDef.router, resourceDef.baseUrl, rows);
-                            }
-                        };
-                    };
-                },
-                editView: function (resourceDef) {
-                    return function (args) {
-                        var resourceId = args.attrs.id;
-                        var resourceDetails = {};
-                        return {
-                            oninit: function () {
-                                return app.helpers.resources.restGetFn(app.api.getFullUrl(resourceDef.baseUrl, resourceId), function (data) { resourceDetails = data; });
-                            },
-                            view: function () {
-                                return m("div", { "id": resourceDef.name, "class": "editView" }, [
-                                    m("h1", { "class": "title" }, app.helpers.resources.strPascal(resourceDef.name) + ": '" + resourceDetails.title + "'"),
-                                    m("form", { "action": "javascript:void(0);", "class": "pure-form pure-form-aligned" },
-                                        m("fieldset",  [].concat(
-                                            m("legend", "Edit details"),
-                                            app.helpers.forms.renderForm(resourceDef.data.edit, resourceDetails),
-                                            app.helpers.forms.renderForm(app.data.publishable.edit, resourceDetails),
-                                            app.helpers.forms.renderForm(app.data.entityStats.edit, resourceDetails),
-                                            app.helpers.forms.renderInput("update", null,
-                                                {
-                                                    type: "button",
-                                                    onclick: function () {
-                                                        console.info("Resource Edit's update");
-                                                        console.log(resourceDetails);
-                                                    }
-                                                }, "update")
-                                        )))
-                                ]);
-                            }
-                        };
-                    }
-                },
-                createView: function (resourceDef) {
-                    return function () {
-                        return {
-                            view: function () {
-                                var resource = {};
-                                return m("div", { "id": resourceDef.name, "class": "createView" }, [
-                                    m("h1", { "class": "title" }, app.helpers.resources.strPascal(resourceDef.name) + ": create new"),
-                                    m("form", { "action": "javascript:void(0);", "class": "pure-form pure-form-aligned" },
-                                        m("fieldset",  [].concat(
-                                            m("legend", "Edit details"),
-                                            app.helpers.forms.renderForm(resourceDef.data.create, resource, function(attr, value) {
-                                                console.log(resource);
-                                                resource[name] = value;
-                                                console.log(resource);
-                                            }),
-                                            app.helpers.forms.renderForm(app.data.publishable.edit, resource),
-                                            app.helpers.forms.renderInput("save", null,
-                                                {
-                                                    type: "button",
-                                                    onclick: function () {
-                                                        console.info("Resource New's save");
-                                                        console.log(resource);
-                                                    }
-                                                }, "save")
-                                        )))
-                                ]);
-                            }
-                        };
-                    }
-                }
-            }
-        }
     };
 
     w.smoll = app;
-})(window);
-
-
-; (function (w) {
-
-    var api = {
-        baseUrl: "http://localhost:62218/api/v1",
-        getFullUrl: function () {
-            return api.baseUrl + "/" + Array.prototype.slice.call(arguments).join("/");
-        }
-    };
-
-    w.smoll.api = api;
 
 })(window);
 
-
-; (function (w) {
-
-    var data = {
-        entityStats: {
-            create: {},
-            edit: {
-                createdBy: { label: "Created by", attributes: { type: "text", readonly: "readonly" } },
-                createdDate: { label: "Created date", attributes: { type: "text", readonly: "readonly" } },
-                modifiedBy: { label: "Modified by", attributes: { type: "text", readonly: "readonly" } },
-                modifiedDate: { label: "Modified date", attributes: { type: "text", readonly: "readonly" } }
-            }
-        },
-        publishable: {
-            create: {
-                status: { label: "Status", attributes: { type: "text" } },
-                publishDate: { label: "Publish date", attributes: { type: "text" } },
-                expireDate: { label: "Expire date", attributes: { type: "text" } }
-            },
-            edit: {
-                status: { label: "Status", attributes: { type: "text" } },
-                publishDate: { label: "Publish date", attributes: { type: "text" } },
-                expireDate: { label: "Expire date", attributes: { type: "text" } }
-            }
-        }
-    };
-
-    w.smoll.data = data;
-})(window);
-
-
-; (function (w) {
-
-    var extend = w.smoll.extend;
-
-    var renderInput = function (name, label, attributes, value, oninputHandler) {
-        var childs = [];
-        if (label !== null) {
-            childs.push(m("label", { "for": name }, label));
-        }
-        switch (attributes["type"]) {
-            case "text":
-                extend(attributes,
-                    {
-                        type: "text",
-                        name: name,
-                        placeholder: label,
-                        oninput: m.withAttr("value", function (v) {
-                            oninputHandler.call(null, name, v);
-                        }),
-                        value: value
-                    });
-                childs.push(m("input", attributes));
-                return m("div", { "class": "pure-control-group" }, childs);
-            case "submit":
-            case "button":
-                extend(attributes,
-                    {
-                        name: name,
-                        "class": "pure-button pure-button-primary"
-                    });
-                childs.push(m("button", attributes, value));
-                return m("div", { "class": "pure-controls" }, childs);
-            default:
-                throw "missing attribute type in rendering input";
-        }
-    };
-
-    w.smoll.forms = w.smoll.forms || {};
-    w.smoll.forms.renderInput = renderInput;
-
-}) (window);
-
-; (function(w) {
-
-    var renderInput = w.smoll.forms.renderInput;
-
-    var renderForm = function(definition, data, handler) {
-        var fields = [];
-        for (var name in definition) {
-            if (definition.hasOwnProperty(name)) {
-                if (data[name] === null) {
-                    data[name] = null;
-                }
-                (function(resource, attrName) {
-                    fields.push(
-                        renderInput(
-                            attrName,
-                            definition[attrName]["label"],
-                            definition[attrName]["attributes"],
-                            resource[attrName],
-                            handler));
-                })(data, name);
-            }
-        }
-
-        return fields;
-    };
-
-    w.smoll.forms = w.smoll.forms || {};
-    w.smoll.forms.renderForm = renderForm;
-
-}) (window);
-
-; (function(w) {
-
-    var forms = {
-    };
-
-    w.smoll.forms = forms;
-}) (window);
 
 ; (function () {
 
@@ -435,9 +92,23 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
 }.bind(window.smoll))(window);
 
 
-; (function () {
+; (function (w) {
 
-    this.rest = {
+    var api = {
+        baseUrl: "http://localhost:62218/api/v1",
+        getFullUrl: function () {
+            return api.baseUrl + "/" + Array.prototype.slice.call(arguments).join("/");
+        }
+    };
+
+    w.smoll.api = api;
+
+})(window);
+
+
+; (function (w) {
+
+    var rest = {
         get: function(resourceUrl, callback) {
             if (typeof (resourceUrl) !== "string") {
                 throw "resourceUrl must be a string";
@@ -470,60 +141,127 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
         }
     };
 
-}.bind(window.smoll))(window);
+    w.smoll.rest = rest;
 
+})(window);
+
+
+; (function(w) {
+
+    var forms = {};
+
+    w.smoll.forms = forms;
+
+}) (window);
 
 ; (function (w) {
 
-    var api = w.smoll.api;
-    var data = w.smoll.data;
-    var rest = w.smoll.rest;
-    var strPascal = w.smoll.strPascal;
-    var renderForm = w.smoll.forms.renderForm;
-    var renderInput = w.smoll.forms.renderInput;
+    var extend = w.smoll.extend;
 
-    var edit = function (resourceDef) {
-        return function (args) {
-            var resourceId = args.attrs.id;
-            var resourceDetails = {};
-            return {
-                oninit: function () {
-                    return rest.get(api.getFullUrl(resourceDef.baseUrl, resourceId), function (data) { resourceDetails = data; });
-                },
-                view: function () {
-                    return m("div", { "id": resourceDef.name, "class": "editView" }, [
-                        m("h1", { "class": "title" }, strPascal(resourceDef.name) + ": '" + resourceDetails.title + "'"),
-                        m("form", { "action": "javascript:void(0);", "class": "pure-form pure-form-aligned" },
-                            m("fieldset",  [].concat(
-                                m("legend", "Edit details"),
-                                renderForm(resourceDef.data.edit, resourceDetails),
-                                renderForm(data.publishable.edit, resourceDetails),
-                                renderForm(data.entityStats.edit, resourceDetails),
-                                renderInput("update", null,
-                                    {
-                                        type: "button",
-                                        onclick: function () {
-                                            console.info("Resource Edit's update");
-                                            console.log(resourceDetails);
-                                        }
-                                    }, "update")
-                            )))
-                    ]);
-                }
-            };
+    var renderInput = function (name, label, attributes, value, oninputHandler) {
+        var childs = [];
+        if (label !== null) {
+            childs.push(m("label", { "for": name }, label));
+        }
+        switch (attributes["type"]) {
+            case "text":
+                extend(attributes,
+                    {
+                        type: "text",
+                        name: name,
+                        placeholder: label,
+                        oninput: m.withAttr("value", function (v) {
+                            oninputHandler.call(null, name, v);
+                        }),
+                        value: value
+                    });
+                childs.push(m("input", attributes));
+                return m("div", { "class": "pure-control-group" }, childs);
+            case "submit":
+            case "button":
+                extend(attributes,
+                    {
+                        name: name,
+                        "class": "pure-button pure-button-primary"
+                    });
+                childs.push(m("button", attributes, value));
+                return m("div", { "class": "pure-controls" }, childs);
+            default:
+                throw "missing attribute type in rendering input";
         }
     };
 
-    w.smoll.views = w.smoll.views || {};
-    w.smoll.views.edit = edit;
+    w.smoll.forms.renderInput = renderInput;
+
+}) (window);
+
+; (function(w) {
+
+    var renderInput = w.smoll.forms.renderInput;
+
+    var renderForm = function(definition, data, handler) {
+        var fields = [];
+        for (var name in definition) {
+            if (definition.hasOwnProperty(name)) {
+                if (data[name] === null) {
+                    data[name] = null;
+                }
+                (function(resource, attrName) {
+                    fields.push(
+                        renderInput(
+                            attrName,
+                            definition[attrName]["label"],
+                            definition[attrName]["attributes"],
+                            resource[attrName],
+                            handler));
+                })(data, name);
+            }
+        }
+
+        return fields;
+    };
+
+    w.smoll.forms.renderForm = renderForm;
+
+}) (window);
+
+; (function (w) {
+
+    var data = {
+        entityStats: {
+            create: {},
+            edit: {
+                createdBy: { label: "Created by", attributes: { type: "text", readonly: "readonly" } },
+                createdDate: { label: "Created date", attributes: { type: "text", readonly: "readonly" } },
+                modifiedBy: { label: "Modified by", attributes: { type: "text", readonly: "readonly" } },
+                modifiedDate: { label: "Modified date", attributes: { type: "text", readonly: "readonly" } }
+            }
+        },
+        publishable: {
+            create: {
+                status: { label: "Status", attributes: { type: "text" } },
+                publishDate: { label: "Publish date", attributes: { type: "text" } },
+                expireDate: { label: "Expire date", attributes: { type: "text" } }
+            },
+            edit: {
+                status: { label: "Status", attributes: { type: "text" } },
+                publishDate: { label: "Publish date", attributes: { type: "text" } },
+                expireDate: { label: "Expire date", attributes: { type: "text" } }
+            }
+        }
+    };
+
+    w.smoll.data = data;
+
 })(window);
 
 
 ; (function (w) {
 
-    var views = w.smoll.views || {};
+    var views = {};
 
     w.smoll.views = views;
+
 })(window);
 
 
@@ -585,8 +323,53 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
         };
     };
 
-    w.smoll.views = w.smoll.views || {};
     w.smoll.views.list = list;
+
+})(window);
+
+
+; (function (w) {
+
+    var api = w.smoll.api;
+    var data = w.smoll.data;
+    var rest = w.smoll.rest;
+    var strPascal = w.smoll.strPascal;
+    var renderForm = w.smoll.forms.renderForm;
+    var renderInput = w.smoll.forms.renderInput;
+
+    var edit = function (resourceDef) {
+        return function (args) {
+            var resourceId = args.attrs.id;
+            var resourceDetails = {};
+            return {
+                oninit: function () {
+                    return rest.get(api.getFullUrl(resourceDef.baseUrl, resourceId), function (data) { resourceDetails = data; });
+                },
+                view: function () {
+                    return m("div", { "id": resourceDef.name, "class": "editView" }, [
+                        m("h1", { "class": "title" }, strPascal(resourceDef.name) + ": '" + resourceDetails.title + "'"),
+                        m("form", { "action": "javascript:void(0);", "class": "pure-form pure-form-aligned" },
+                            m("fieldset",  [].concat(
+                                m("legend", "Edit details"),
+                                renderForm(resourceDef.data.edit, resourceDetails),
+                                renderForm(data.publishable.edit, resourceDetails),
+                                renderForm(data.entityStats.edit, resourceDetails),
+                                renderInput("update", null,
+                                    {
+                                        type: "button",
+                                        onclick: function () {
+                                            console.info("Resource Edit's update");
+                                            console.log(resourceDetails);
+                                        }
+                                    }, "update")
+                            )))
+                    ]);
+                }
+            };
+        }
+    };
+
+    w.smoll.views.edit = edit;
 
 })(window);
 
@@ -629,7 +412,6 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
         }
     };
 
-    w.smoll.views = w.smoll.views || {};
     w.smoll.views.new = newResource;
 
 })(window);

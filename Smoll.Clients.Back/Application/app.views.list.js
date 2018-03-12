@@ -57,7 +57,6 @@
         };
     };
 
-    w.smoll.views = w.smoll.views || {};
     w.smoll.views.list = list;
 
 })(window);

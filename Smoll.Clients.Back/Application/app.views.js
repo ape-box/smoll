@@ -1,7 +1,8 @@
 ﻿
 ; (function (w) {
 
-    var views = w.smoll.views || {};
+    var views = {};
 
     w.smoll.views = views;
+
 })(window);

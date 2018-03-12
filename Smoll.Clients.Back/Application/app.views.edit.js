@@ -40,6 +40,6 @@
         }
     };
 
-    w.smoll.views = w.smoll.views || {};
     w.smoll.views.edit = edit;
+
 })(window);

@@ -1,7 +1,7 @@
 ﻿
-; (function () {
+; (function (w) {
 
-    this.rest = {
+    var rest = {
         get: function(resourceUrl, callback) {
             if (typeof (resourceUrl) !== "string") {
                 throw "resourceUrl must be a string";
@@ -34,4 +34,6 @@
         }
     };
 
-}.bind(window.smoll))(window);
+    w.smoll.rest = rest;
+
+})(window);

@@ -25,7 +25,6 @@
         return fields;
     };
 
-    w.smoll.forms = w.smoll.forms || {};
     w.smoll.forms.renderForm = renderForm;
 
 }) (window);

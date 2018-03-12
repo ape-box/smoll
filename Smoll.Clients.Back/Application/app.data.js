@@ -26,4 +26,5 @@
     };
 
     w.smoll.data = data;
+
 })(window);

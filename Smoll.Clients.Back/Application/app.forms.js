@@ -1,6 +1,8 @@
 ﻿
 ; (function(w) {
 
-    w.smoll.forms = w.smoll.forms || {};
+    var forms = {};
+
+    w.smoll.forms = forms;
 
 }) (window);

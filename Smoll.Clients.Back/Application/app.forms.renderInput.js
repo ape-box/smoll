@@ -36,7 +36,6 @@
         }
     };
 
-    w.smoll.forms = w.smoll.forms || {};
     w.smoll.forms.renderInput = renderInput;
 
 }) (window);

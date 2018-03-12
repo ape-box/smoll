@@ -37,7 +37,6 @@
         }
     };
 
-    w.smoll.views = w.smoll.views || {};
     w.smoll.views.new = newResource;
 
 })(window);
