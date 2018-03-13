@@ -14,7 +14,6 @@
                     var valueField = null;
                     switch (definition[attrName]["attributes"]["type"]) {
                         case "radio":
-                            console.log(name + "=" + definition[attrName]["attributes"]["type"]);
                             valueField = definition[attrName]["values"];
                             break;
                         default:

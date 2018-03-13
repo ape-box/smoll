@@ -89,6 +89,23 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
 
     this.createTitle = function (resourceName) { };
 
+    this.datePicker = function (name) {
+        return function(evt) {
+            var d = new Date();
+            var year = prompt("Which Year", d.getFullYear());
+            var month = prompt("Which Month", 1+d.getMonth());
+            var day = prompt("Which Day", d.getDate());
+            var time = prompt("Which Time", d.getHours()+":"+d.getMinutes());
+            var date = year + "-" + month + "-" + day + " " + time;
+
+            console.log("Date is " + date);
+            var elements = document.querySelectorAll("#main input[name=" + name+"]");
+            for (var i = 0; i < elements.length; i++) {
+                elements[i].value = date;
+            }
+        }
+    };
+
 }.bind(window.smoll))(window);
 
 
@@ -206,13 +223,15 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
                         var option = m("input",
                             extend({}, attributes,
                             {
+                                id: name + valueField[opt],
                                 name: name,
                                 oninput: m.withAttr("value", function (v) {
                                     valueField.set(name, v);
                                 }),
-                                value: valueField[opt]
+                                value: valueField[opt],
+                                checked: false
                             }), null);
-                        options.push(m("label", { "for": name }, [option, opt]));
+                        options.push(m("label", { "for": name + valueField[opt] }, [option, opt]));
                     }
                 }
                 childs.push(m("div", { "class": "pure-radio" }, options));
@@ -251,7 +270,6 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
                     var valueField = null;
                     switch (definition[attrName]["attributes"]["type"]) {
                         case "radio":
-                            console.log(name + "=" + definition[attrName]["attributes"]["type"]);
                             valueField = definition[attrName]["values"];
                             break;
                         default:
@@ -283,6 +301,8 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
 
     w.smoll.data = {};
 
+    var datePicker = w.smoll.datePicker;
+
     w.smoll.data.definitions = {
         status: {
             Draft: 0,
@@ -305,13 +325,13 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
     w.smoll.data.publishable = {
         create: {
             status: { label: "Status", attributes: { type: "radio" }, values: w.smoll.data.definitions.status },
-            publishDate: { label: "Publish date", attributes: { type: "text" } },
-            expireDate: { label: "Expire date", attributes: { type: "text" } }
+            publishDate: { label: "Publish date", attributes: { type: "text", onclick: datePicker("publishDate") } },
+            expireDate: { label: "Expire date", attributes: { type: "text", onclick: datePicker("expireDate") } }
         },
         edit: {
             status: { label: "Status", attributes: { type: "radio" }, values: w.smoll.data.definitions.status },
-            publishDate: { label: "Publish date", attributes: { type: "text" } },
-            expireDate: { label: "Expire date", attributes: { type: "text" } }
+            publishDate: { label: "Publish date", attributes: { type: "text", onclick: datePicker("publishDate") } },
+            expireDate: { label: "Expire date", attributes: { type: "text", onclick: datePicker("expireDate") } }
         }
     };
 
@@ -428,6 +448,7 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
                                                 console.log(a);
                                                 console.log(b);
                                                 console.log(c);
+                                                console.log(resource);
                                             });
                                         }
                                     },
@@ -477,6 +498,7 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
                                                 console.log(a);
                                                 console.log(b);
                                                 console.log(c);
+                                                console.log(resource);
                                             });
                                         }
                                     },

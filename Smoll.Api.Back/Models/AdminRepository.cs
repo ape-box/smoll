@@ -30,9 +30,7 @@ namespace Smoll.Api.Back.Models
         public Task<IEnumerable<TEntity>> GetOrderedPageAsync<TEntity>((int? pageNumber, int? pageSize) pagination)
             where TEntity : class, IPublicationEntity
             => GetAsync<TEntity>(
-                filter: t => t.Status == PublishStatus.Published
-                             && t.PublishDate <= DateTime.UtcNow
-                             && t.ExpireDate >= DateTime.UtcNow,
+                filter: null,
                 orderBy: dbSet => dbSet.OrderBy(t => t.PublishDate),
                 includeProperties: null,
                 skip: PageNumberToSkip(pagination.pageNumber ?? DefaultPageNumber, NormalizePageSize(pagination.pageSize ?? DefaultPageSize)),

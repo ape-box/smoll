@@ -38,7 +38,9 @@
     #app #main .createView .pure-radio, #app #main .editView .pure-radio {
       display: inline-block; }
       #app #main .createView .pure-radio label, #app #main .editView .pure-radio label {
-        margin: 0 1em 0 0; }
+        margin: 0 1em 0 0;
+        width: auto;
+        text-align: left; }
         #app #main .createView .pure-radio label input, #app #main .editView .pure-radio label input {
-          margin: 0 1em 0 0; }
+          margin: 0 4pt 0 0; }
 

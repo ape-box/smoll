@@ -3,6 +3,8 @@
 
     w.smoll.data = {};
 
+    var datePicker = w.smoll.datePicker;
+
     w.smoll.data.definitions = {
         status: {
             Draft: 0,
@@ -25,13 +27,13 @@
     w.smoll.data.publishable = {
         create: {
             status: { label: "Status", attributes: { type: "radio" }, values: w.smoll.data.definitions.status },
-            publishDate: { label: "Publish date", attributes: { type: "text" } },
-            expireDate: { label: "Expire date", attributes: { type: "text" } }
+            publishDate: { label: "Publish date", attributes: { type: "text", onclick: datePicker("publishDate") } },
+            expireDate: { label: "Expire date", attributes: { type: "text", onclick: datePicker("expireDate") } }
         },
         edit: {
             status: { label: "Status", attributes: { type: "radio" }, values: w.smoll.data.definitions.status },
-            publishDate: { label: "Publish date", attributes: { type: "text" } },
-            expireDate: { label: "Expire date", attributes: { type: "text" } }
+            publishDate: { label: "Publish date", attributes: { type: "text", onclick: datePicker("publishDate") } },
+            expireDate: { label: "Expire date", attributes: { type: "text", onclick: datePicker("expireDate") } }
         }
     };
 

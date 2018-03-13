@@ -33,4 +33,21 @@
 
     this.createTitle = function (resourceName) { };
 
+    this.datePicker = function (name) {
+        return function(evt) {
+            var d = new Date();
+            var year = prompt("Which Year", d.getFullYear());
+            var month = prompt("Which Month", 1+d.getMonth());
+            var day = prompt("Which Day", d.getDate());
+            var time = prompt("Which Time", d.getHours()+":"+d.getMinutes());
+            var date = year + "-" + month + "-" + day + " " + time;
+
+            console.log("Date is " + date);
+            var elements = document.querySelectorAll("#main input[name=" + name+"]");
+            for (var i = 0; i < elements.length; i++) {
+                elements[i].value = date;
+            }
+        }
+    };
+
 }.bind(window.smoll))(window);

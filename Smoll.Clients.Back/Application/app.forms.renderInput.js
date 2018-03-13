@@ -34,13 +34,15 @@
                         var option = m("input",
                             extend({}, attributes,
                             {
+                                id: name + valueField[opt],
                                 name: name,
                                 oninput: m.withAttr("value", function (v) {
                                     valueField.set(name, v);
                                 }),
-                                value: valueField[opt]
+                                value: valueField[opt],
+                                checked: false
                             }), null);
-                        options.push(m("label", { "for": name }, [option, opt]));
+                        options.push(m("label", { "for": name + valueField[opt] }, [option, opt]));
                     }
                 }
                 childs.push(m("div", { "class": "pure-radio" }, options));
