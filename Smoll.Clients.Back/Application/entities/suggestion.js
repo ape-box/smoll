@@ -9,12 +9,12 @@
         name: "suggestion",
         data: {
             create: {
-                title: { label: "Title", attributes: { type: "text" } },
-                description: { label: "Description", attributes: { type: "text" } }
+                title:       { label: "Title",       attributes: { name: "title",       type: "text" } },
+                description: { label: "Description", attributes: { name: "description", type: "text" } }
             },
             edit: {
-                title: { label: "Title", attributes: { type: "text" } },
-                description: { label: "Description", attributes: { type: "text" } }
+                title:       { label: "Title",       attributes: { name: "title",       type: "text" } },
+                description: { label: "Description", attributes: { name: "description", type: "text" } }
             }
         }
     };

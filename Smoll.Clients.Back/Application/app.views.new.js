@@ -20,7 +20,7 @@
                                 m("legend", "Edit details"),
                                 renderForm(resourceDef.data.create, resource),
                                 renderForm(data.publishable.edit, resource),
-                                renderInput("save", null,
+                                renderInput(null,
                                     {
                                         type: "button",
                                         onclick: function () {

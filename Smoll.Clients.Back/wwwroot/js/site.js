@@ -190,76 +190,134 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
 
 ; (function (w) {
 
-    var extend = w.smoll.extend;
+    var types = {};
 
-    var renderInput = function (name, label, attributes, valueField) {
-        var childs = [];
-        switch (attributes["type"]) {
-            case "text":
-                if (label !== null) {
-                    childs.push(m("label", { "for": name }, label));
-                }
-                extend(attributes,
-                    {
-                        name: name,
-                        placeholder: label,
-                        oninput: m.withAttr("value", function (v) {
-                            valueField.set(name, v);
-                        }),
-                        value: valueField.get()
-                    });
-                childs.push(m("input", attributes));
-                return m("div", { "class": "pure-control-group" }, childs);
-            case "radio":
-                if (typeof (label) !== "string") {
-                    throw "Missing label definition for radio " + name;
-                }
+    var renderInput = function (label, attributes, values) {
 
-                childs.push(m("label", { "for": name }, label));
-
-                var options = [];
-                for (var opt in valueField) {
-                    if (valueField.hasOwnProperty(opt)) {
-                        var option = m("input",
-                            extend({}, attributes,
-                            {
-                                id: name + valueField[opt],
-                                name: name,
-                                oninput: m.withAttr("value", function (v) {
-                                    valueField.set(name, v);
-                                }),
-                                value: valueField[opt],
-                                checked: false
-                            }), null);
-                        options.push(m("label", { "for": name + valueField[opt] }, [option, opt]));
-                    }
-                }
-                childs.push(m("div", { "class": "pure-radio" }, options));
-
-                return m("div", { "class": "pure-control-group" }, childs);
-            case "submit":
-            case "button":
-                extend(attributes,
-                    {
-                        name: name,
-                        "class": "pure-button pure-button-primary"
-                    });
-                childs.push(m("button", attributes, valueField.get()));
-                return m("div", { "class": "pure-controls" }, childs);
-            default:
-                throw "missing attribute type in rendering input";
+        var type = attributes["type"];
+        if (!types[type]) {
+            throw "missing attribute type in rendering input";
         }
+
+        return types[type].call(null, label, attributes, values);
     };
 
     w.smoll.forms.renderInput = renderInput;
+    w.smoll.forms.renderInputByType = types;
 
-}) (window);
+})(window);
+
+
+; (function (w) {
+
+    var extend = w.smoll.extend;
+
+    var renderInput = function (label, attributes, values) {
+        var childs = [];
+        extend(attributes,
+            {
+                "class": "pure-button pure-button-primary"
+            });
+        childs.push(m("button", attributes, values.get()));
+
+        return m("div", { "class": "pure-controls" }, childs);
+    };
+
+    w.smoll.forms.renderInputByType["submit"] = renderInput;
+    w.smoll.forms.renderInputByType["button"] = renderInput;
+
+})(window);
+
+
+; (function (w) {
+
+    var extend = w.smoll.extend;
+
+    var renderInput = function (label, attributes, values) {
+        var childs = [];
+
+        var name = attributes["name"];
+        if (typeof (name) !== "string") {
+            throw "Radio input requires the name attribute";
+        }
+
+        if (typeof (label) !== "string") {
+            throw "Missing label definition for radio " + name;
+        }
+
+        childs.push(m("label", { "for": name }, label));
+
+        var options = [];
+        for (var opt in values) {
+            if (values.hasOwnProperty(opt) && (typeof (values[opt]) === "string" || typeof (values[opt]) === "number")) {
+                var option = m("input",
+                    extend({}, attributes,
+                    {
+                                id: name + valueField[opt],
+                        name: name,
+                        oninput: m.withAttr("value", function (v) {
+                            values.set(name, v);
+                        }),
+                        value: values[opt],
+                        checked: values.get() === values[opt]
+                    }), null);
+                options.push(m("label", { "for": name }, [option, opt]));
+            }
+        }
+        childs.push(m("div", { "class": "pure-radio" }, options));
+
+        return m("div", { "class": "pure-control-group" }, childs);
+    };
+
+    w.smoll.forms.renderInputByType["radio"] = renderInput;
+
+})(window);
+
+
+; (function (w) {
+
+    var extend = w.smoll.extend;
+
+    var renderInput = function (label, attributes, values) {
+        var childs = [];
+
+        var name = attributes["name"];
+        if (typeof (name) !== "string") {
+            throw "Text input requires the name attribute";
+        }
+
+        if (typeof (label) !== "string") {
+            throw "Missing label definition for radio " + name;
+        }
+        if (label !== null) {
+            childs.push(m("label", { "for": name }, label));
+        }
+
+        extend(attributes,
+            {
+                name: name,
+                placeholder: label,
+                oninput: m.withAttr("value", function (v) {
+                    values.set(name, v);
+                }),
+                value: values.get()
+            });
+        childs.push(m("input", attributes));
+
+        return m("div", { "class": "pure-control-group" }, childs);
+    };
+
+    w.smoll.forms.renderInputByType["text"] = renderInput;
+
+})(window);
+
 
 ; (function(w) {
 
+    var extend = w.smoll.extend;
     var renderInput = w.smoll.forms.renderInput;
 
-    var renderForm = function(definition, data) {
+    var renderForm = function (definition, data) {
         var fields = [];
         for (var name in definition) {
             if (definition.hasOwnProperty(name)) {
@@ -267,24 +325,16 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
                     data[name] = null;
                 }
                 (function (resource, attrName) {
-                    var valueField = null;
-                    switch (definition[attrName]["attributes"]["type"]) {
-                        case "radio":
-                            valueField = definition[attrName]["values"];
-                            break;
-                        default:
-                            valueField = {
-                                get: function () { return resource[attrName]; },
-                                set: function (name, value) { resource[name] = value; }
-                            };
-                    }
+                    var values = extend(definition[attrName]["values"], {
+                        get: function () { return resource[attrName]; },
+                        set: function (name, value) { resource[name] = value; }
+                    });
 
                     fields.push(
                         renderInput(
-                            attrName,
                             definition[attrName]["label"],
                             definition[attrName]["attributes"],
-                            valueField
+                            values
                         ));
                 })(data, name);
             }
@@ -305,9 +355,9 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
 
     w.smoll.data.definitions = {
         status: {
-            Draft: 0,
+            Draft:     0,
             Published: 1,
-            Archived: 2,
+            Archived:  2,
             TakenDown: 3
         }
     };
@@ -315,23 +365,23 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
     w.smoll.data.entityStats = {
         create: {},
         edit: {
-            createdBy: { label: "Created by", attributes: { type: "text", readonly: "readonly" } },
-            createdDate: { label: "Created date", attributes: { type: "text", readonly: "readonly" } },
-            modifiedBy: { label: "Modified by", attributes: { type: "text", readonly: "readonly" } },
-            modifiedDate: { label: "Modified date", attributes: { type: "text", readonly: "readonly" } }
+            createdBy:    { label: "Created by",    attributes: { name: "createdBy",    type: "text", disabled: true } },
+            createdDate:  { label: "Created date",  attributes: { name: "createdDate",  type: "text", disabled: true } },
+            modifiedBy:   { label: "Modified by",   attributes: { name: "modifiedBy",   type: "text", disabled: true } },
+            modifiedDate: { label: "Modified date", attributes: { name: "modifiedDate", type: "text", disabled: true } }
         }
     };
 
     w.smoll.data.publishable = {
         create: {
-            status: { label: "Status", attributes: { type: "radio" }, values: w.smoll.data.definitions.status },
-            publishDate: { label: "Publish date", attributes: { type: "text", onclick: datePicker("publishDate") } },
-            expireDate: { label: "Expire date", attributes: { type: "text", onclick: datePicker("expireDate") } }
+            status:      { label: "Status",       attributes: { name: "status",      type: "radio" }, values: w.smoll.data.definitions.status },
+            publishDate: { label: "Publish date", attributes: { name: "publishDate", type: "text" } },
+            expireDate:  { label: "Expire date",  attributes: { name: "expireDate",  type: "text" } }
         },
         edit: {
-            status: { label: "Status", attributes: { type: "radio" }, values: w.smoll.data.definitions.status },
-            publishDate: { label: "Publish date", attributes: { type: "text", onclick: datePicker("publishDate") } },
-            expireDate: { label: "Expire date", attributes: { type: "text", onclick: datePicker("expireDate") } }
+            status:      { label: "Status",       attributes: { name: "status",      type: "radio" }, values: w.smoll.data.definitions.status },
+            publishDate: { label: "Publish date", attributes: { name: "publishDate", type: "text" } },
+            expireDate:  { label: "Expire date",  attributes: { name: "expireDate",  type: "text" } }
         }
     };
 
@@ -436,7 +486,7 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
                                 renderForm(resourceDef.data.edit, resource),
                                 renderForm(data.publishable.edit, resource),
                                 renderForm(data.entityStats.edit, resource),
-                                renderInput("update", null,
+                                renderInput(null,
                                     {
                                         type: "button",
                                         onclick: function () {
@@ -486,7 +536,7 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
                                 m("legend", "Edit details"),
                                 renderForm(resourceDef.data.create, resource),
                                 renderForm(data.publishable.edit, resource),
-                                renderInput("save", null,
+                                renderInput(null,
                                     {
                                         type: "button",
                                         onclick: function () {
@@ -600,20 +650,20 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
         name: "article",
         data: {
             create: {
-                title: { label: "Title", attributes: { type: "text" } },
-                subtitle: { label: "Subtitle", attributes: { type: "text" } },
-                slug: { label: "Slug", attributes: { type: "text" } },
-                description: { label: "Description", attributes: { type: "text" } },
-                abstract: { label: "Abstract", attributes: { type: "text" } },
-                content: { label: "Content", attributes: { type: "text" } }
+                title:       { label: "Title",       attributes: { name: "title",       type: "text" } },
+                subtitle:    { label: "Subtitle",    attributes: { name: "subtitle",    type: "text" } },
+                slug:        { label: "Slug",        attributes: { name: "slug",        type: "text" } },
+                description: { label: "Description", attributes: { name: "description", type: "text" } },
+                abstract:    { label: "Abstract",    attributes: { name: "abstract",    type: "text" } },
+                content:     { label: "Content",     attributes: { name: "content",     type: "text" } }
             },
             edit: {
-                title: { label: "Title", attributes: { type: "text" } },
-                subtitle: { label: "Subtitle", attributes: { type: "text" } },
-                slug: { label: "Slug", attributes: { type: "text" } },
-                description: { label: "Description", attributes: { type: "text" } },
-                abstract: { label: "Abstract", attributes: { type: "text" } },
-                content: { label: "Content", attributes: { type: "text" } }
+                title:       { label: "Title",       attributes: { name: "title",       type: "text" } },
+                subtitle:    { label: "Subtitle",    attributes: { name: "subtitle",    type: "text" } },
+                slug:        { label: "Slug",        attributes: { name: "slug",        type: "text" } },
+                description: { label: "Description", attributes: { name: "description", type: "text" } },
+                abstract:    { label: "Abstract",    attributes: { name: "abstract",    type: "text" } },
+                content:     { label: "Content",     attributes: { name: "content",     type: "text" } }
             }
         }
     };
@@ -633,14 +683,14 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
         name: "poll",
         data: {
             create: {
-                title: { label: "Title", attributes: { type: "text" } },
-                description: { label: "Description", attributes: { type: "text" } },
-                imageUrl: { label: "ImageUrl", attributes: { type: "text" } }
+                title:       { label: "Title",       attributes: { name: "title",       type: "text" } },
+                description: { label: "Description", attributes: { name: "description", type: "text" } },
+                imageUrl:    { label: "ImageUrl",    attributes: { name: "imageUrl",    type: "text" } }
             },
             edit: {
-                title: { label: "Title", attributes: { type: "text" } },
-                description: { label: "Description", attributes: { type: "text" } },
-                imageUrl: { label: "ImageUrl", attributes: { type: "text" } }
+                title:       { label: "Title",       attributes: { name: "title",       type: "text" } },
+                description: { label: "Description", attributes: { name: "description", type: "text" } },
+                imageUrl:    { label: "ImageUrl",    attributes: { name: "imageUrl",    type: "text" } }
             }
         }
     };
@@ -660,20 +710,20 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
         name: "proposal",
         data: {
             create: {
-                title: { label: "Title", attributes: { type: "text" } },
-                subtitle: { label: "Subtitle", attributes: { type: "text" } },
-                slug: { label: "Slug", attributes: { type: "text" } },
-                description: { label: "Description", attributes: { type: "text" } },
-                abstract: { label: "Abstract", attributes: { type: "text" } },
-                content: { label: "Content", attributes: { type: "text" } }
+                title:       { label: "Title",       attributes: { name: "title",       type: "text" } },
+                subtitle:    { label: "Subtitle",    attributes: { name: "subtitle",    type: "text" } },
+                slug:        { label: "Slug",        attributes: { name: "slug",        type: "text" } },
+                description: { label: "Description", attributes: { name: "description", type: "text" } },
+                abstract:    { label: "Abstract",    attributes: { name: "abstract",    type: "text" } },
+                content:     { label: "Content",     attributes: { name: "content",     type: "text" } }
             },
             edit: {
-                title: { label: "Title", attributes: { type: "text" } },
-                subtitle: { label: "Subtitle", attributes: { type: "text" } },
-                slug: { label: "Slug", attributes: { type: "text" } },
-                description: { label: "Description", attributes: { type: "text" } },
-                abstract: { label: "Abstract", attributes: { type: "text" } },
-                content: { label: "Content", attributes: { type: "text" } }
+                title:       { label: "Title",       attributes: { name: "title",       type: "text" } },
+                subtitle:    { label: "Subtitle",    attributes: { name: "subtitle",    type: "text" } },
+                slug:        { label: "Slug",        attributes: { name: "slug",        type: "text" } },
+                description: { label: "Description", attributes: { name: "description", type: "text" } },
+                abstract:    { label: "Abstract",    attributes: { name: "abstract",    type: "text" } },
+                content:     { label: "Content",     attributes: { name: "content",     type: "text" } }
             }
         }
     };
@@ -693,12 +743,12 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
         name: "queue",
         data: {
             create: {
-                title: { label: "Title", attributes: { type: "text" } },
-                description: { label: "Description", attributes: { type: "text" } }
+                title:       { label: "Title",       attributes: { name: "title",       type: "text" } },
+                description: { label: "Description", attributes: { name: "description", type: "text" } }
             },
             edit: {
-                title: { label: "Title", attributes: { type: "text" } },
-                description: { label: "Description", attributes: { type: "text" } }
+                title:       { label: "Title",       attributes: { name: "title",       type: "text" } },
+                description: { label: "Description", attributes: { name: "description", type: "text" } }
             }
         }
     };
@@ -718,12 +768,12 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
         name: "suggestion",
         data: {
             create: {
-                title: { label: "Title", attributes: { type: "text" } },
-                description: { label: "Description", attributes: { type: "text" } }
+                title:       { label: "Title",       attributes: { name: "title",       type: "text" } },
+                description: { label: "Description", attributes: { name: "description", type: "text" } }
             },
             edit: {
-                title: { label: "Title", attributes: { type: "text" } },
-                description: { label: "Description", attributes: { type: "text" } }
+                title:       { label: "Title",       attributes: { name: "title",       type: "text" } },
+                description: { label: "Description", attributes: { name: "description", type: "text" } }
             }
         }
     };

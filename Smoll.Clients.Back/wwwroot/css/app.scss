@@ -70,6 +70,12 @@
         }
 
         .createView, .editView {
+            .pure-control-group {
+                > label {
+                    vertical-align: top;
+                }
+            }
+
             .pure-radio {
                 display: inline-block;
 
@@ -77,6 +83,7 @@
                     margin: 0 1em 0 0;
                     width: auto;
                     text-align: left;
+                    display: block;
 
                     input {
                         margin: 0 4pt 0 0;

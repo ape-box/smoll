@@ -25,7 +25,7 @@
                                 renderForm(resourceDef.data.edit, resource),
                                 renderForm(data.publishable.edit, resource),
                                 renderForm(data.entityStats.edit, resource),
-                                renderInput("update", null,
+                                renderInput(null,
                                     {
                                         type: "button",
                                         onclick: function () {

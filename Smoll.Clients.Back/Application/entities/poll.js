@@ -9,14 +9,14 @@
         name: "poll",
         data: {
             create: {
-                title: { label: "Title", attributes: { type: "text" } },
-                description: { label: "Description", attributes: { type: "text" } },
-                imageUrl: { label: "ImageUrl", attributes: { type: "text" } }
+                title:       { label: "Title",       attributes: { name: "title",       type: "text" } },
+                description: { label: "Description", attributes: { name: "description", type: "text" } },
+                imageUrl:    { label: "ImageUrl",    attributes: { name: "imageUrl",    type: "text" } }
             },
             edit: {
-                title: { label: "Title", attributes: { type: "text" } },
-                description: { label: "Description", attributes: { type: "text" } },
-                imageUrl: { label: "ImageUrl", attributes: { type: "text" } }
+                title:       { label: "Title",       attributes: { name: "title",       type: "text" } },
+                description: { label: "Description", attributes: { name: "description", type: "text" } },
+                imageUrl:    { label: "ImageUrl",    attributes: { name: "imageUrl",    type: "text" } }
             }
         }
     };

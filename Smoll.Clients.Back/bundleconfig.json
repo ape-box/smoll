@@ -24,6 +24,7 @@
         "application/app.rest.js",
         "application/app.forms.js",
         "application/app.forms.renderInput.js",
+        "application/app.forms.renderInput.*.js",
         "application/app.forms.renderForm.js",
         "application/app.data.js",
         "application/app.views.js",
