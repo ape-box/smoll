@@ -253,7 +253,7 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
                 var option = m("input",
                     extend({}, attributes,
                     {
-                                id: name + valueField[opt],
+                        id: name+values[opt],
                         name: name,
                         oninput: m.withAttr("value", function (v) {
                             values.set(name, v);
@@ -261,7 +261,7 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
                         value: values[opt],
                         checked: values.get() === values[opt]
                     }), null);
-                options.push(m("label", { "for": name }, [option, opt]));
+                options.push(m("label", { "for": name + values[opt] }, [option, opt]));
             }
         }
         childs.push(m("div", { "class": "pure-radio" }, options));
@@ -375,13 +375,13 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
     w.smoll.data.publishable = {
         create: {
             status:      { label: "Status",       attributes: { name: "status",      type: "radio" }, values: w.smoll.data.definitions.status },
-            publishDate: { label: "Publish date", attributes: { name: "publishDate", type: "text" } },
-            expireDate:  { label: "Expire date",  attributes: { name: "expireDate",  type: "text" } }
+            publishDate: { label: "Publish date", attributes: { name: "publishDate", type: "text", onclick: datePicker("publishDate") } },
+            expireDate:  { label: "Expire date",  attributes: { name: "expireDate",  type: "text", onclick: datePicker("expireDate") } }
         },
         edit: {
             status:      { label: "Status",       attributes: { name: "status",      type: "radio" }, values: w.smoll.data.definitions.status },
-            publishDate: { label: "Publish date", attributes: { name: "publishDate", type: "text" } },
-            expireDate:  { label: "Expire date",  attributes: { name: "expireDate",  type: "text" } }
+            publishDate: { label: "Publish date", attributes: { name: "publishDate", type: "text", onclick: datePicker("publishDate") } },
+            expireDate:  { label: "Expire date",  attributes: { name: "expireDate",  type: "text", onclick: datePicker("expireDate") } }
         }
     };
 

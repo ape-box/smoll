@@ -23,6 +23,7 @@
                 var option = m("input",
                     extend({}, attributes,
                     {
+                        id: name+values[opt],
                         name: name,
                         oninput: m.withAttr("value", function (v) {
                             values.set(name, v);
@@ -30,7 +31,7 @@
                         value: values[opt],
                         checked: values.get() === values[opt]
                     }), null);
-                options.push(m("label", { "for": name }, [option, opt]));
+                options.push(m("label", { "for": name + values[opt] }, [option, opt]));
             }
         }
         childs.push(m("div", { "class": "pure-radio" }, options));
