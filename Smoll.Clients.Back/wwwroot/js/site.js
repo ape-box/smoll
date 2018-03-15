@@ -98,10 +98,10 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
             var time = prompt("Which Time", d.getHours()+":"+d.getMinutes());
             var date = year + "-" + month + "-" + day + " " + time;
 
-            console.log("Date is " + date);
             var elements = document.querySelectorAll("#main input[name=" + name+"]");
             for (var i = 0; i < elements.length; i++) {
                 elements[i].value = date;
+                elements[i].dispatchEvent(new Event("input"));
             }
         }
     };
