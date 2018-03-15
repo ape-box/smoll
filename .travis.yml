@@ -3,8 +3,4 @@ solution: Smoll.sln
 mono: none
 dotnet: 2.1.3
 script:
- - dotnet restore
- - dotnet build
- - dotnet test .\Smoll.Api.Back.Tests\Smoll.Api.Back.Tests.csproj
- - dotnet test .\Smoll.Api.Back.Tests\Smoll.Api.Common.Tests.csproj
- - dotnet test .\Smoll.Api.Back.Tests\Smoll.Api.Front.Tests.csproj
+ - ./build.sh
