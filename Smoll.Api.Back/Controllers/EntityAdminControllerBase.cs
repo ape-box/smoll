@@ -7,6 +7,9 @@ using Smoll.Api.Common.Controllers.Extensions;
 
 namespace Smoll.Api.Back.Controllers
 {
+    using System.Net;
+    using Smoll.Api.Common.Controllers.Models;
+
     [Route("api/v1/[controller]")]
     public abstract class EntityAdminControllerBase<TEntity> : Controller
         where TEntity : class, IPublicationEntity
@@ -17,6 +20,14 @@ namespace Smoll.Api.Back.Controllers
         {
             Repository = repository ?? throw new ArgumentNullException(nameof(repository));
         }
+
+        protected ActionResult Ok(object value)
+            => base.Ok(new ResponseWrapperModel
+                {
+                    Status = HttpStatusCode.OK.StringRepresentation(),
+                    Errors = new String[0],
+                    Data = value
+                });
 
         [HttpGet]
         public async Task<IActionResult> Get(int? pageNumber, int? pageSize)

@@ -43,6 +43,8 @@ namespace Smoll.Data.Pgsql.Repositories
             includeProperties = includeProperties ?? string.Empty;
             var query = context.Set<TEntity>() as IQueryable<TEntity>;
 
+            throw new Exception("TestFlow");
+
             if (filter != null)
             {
                 query = query.Where(filter);
