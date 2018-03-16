@@ -29,6 +29,18 @@ namespace Smoll.Api.Back
 
         private void InitializeMVC(IServiceCollection services)
         {
+            services.AddCors(options =>
+            {
+                //options.AddPolicy("AllowSpecificOrigin",
+                //    builder => builder.WithOrigins("http://localhost:60067")
+                options.AddPolicy("AllowAllOrigins",
+                    builder => builder.AllowAnyOrigin()
+                        .AllowAnyMethod()
+                        .AllowAnyHeader());
+                /*.WithOrigins("http://example.com")
+               .AllowAnyMethod();*/
+            });
+
             void ConfigureMVC(MvcOptions options)
                 => options.Filters.Add(typeof(ValidateModelAttribute));
 
@@ -69,6 +81,11 @@ namespace Smoll.Api.Back
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
+                app.UseCors("AllowAllOrigins");
+            }
+            else
+            {
+                app.UseCors("AllowSpecificOrigin");
             }
 
             app.UseMvc();

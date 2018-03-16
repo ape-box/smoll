@@ -1,0 +1,95 @@
+﻿
+#app {
+    background-color: hsl(210, 0%, 100%);
+    max-width: 800pt;
+    margin: 0 auto;
+    box-shadow: 2pt 2pt 10pt 0pt hsla(210, 0%, 60%, 0.1);
+
+    #navigation {
+        background: linear-gradient(hsl(210, 100%, 99.5%), hsl(210, 70%, 96%));
+        box-shadow: 0pt 1pt 8pt 0pt hsla(210, 0%, 80%, 0.1);
+
+        a {
+            padding: 8pt;
+            text-decoration: none;
+
+            &.active {
+                background-color: hsla(210, 100%, 60%, 0.6);
+                color: white;
+            }
+        }
+    }
+
+    #main {
+        margin: 10pt;
+        padding: 8pt;
+
+        .listView {
+            .title {
+            }
+
+            .header, .row, .footer {
+                border: 1px solid hsla(210, 0%, 0%, 0.6);
+                padding: 4pt 8pt;
+            }
+
+            .header, .footer {
+                .label {
+                    font-style: italic;
+                    font-size: 11pt;
+                    margin-right: 10pt;
+                }
+            }
+
+            .header {
+                border-top-left-radius: 6pt;
+                border-top-right-radius: 6pt;
+                border-bottom: none;
+            }
+
+            .rows {
+                .row {
+                    span {
+                        margin: 0 4pt;
+                    }
+                }
+            }
+
+            .footer {
+                border-bottom-left-radius: 6pt;
+                border-bottom-right-radius: 6pt;
+                border-top: none;
+
+                .actions {
+                    .pure-button {
+                        font-size: 11pt;
+                        padding: 0.25em 0.5em;
+                    }
+                }
+            }
+        }
+
+        .createView, .editView {
+            .pure-control-group {
+                > label {
+                    vertical-align: top;
+                }
+            }
+
+            .pure-radio {
+                display: inline-block;
+
+                label {
+                    margin: 0 1em 0 0;
+                    width: auto;
+                    text-align: left;
+                    display: block;
+
+                    input {
+                        margin: 0 4pt 0 0;
+                    }
+                }
+            }
+        }
+    }
+}

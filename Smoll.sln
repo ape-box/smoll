@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.27130.2026
+VisualStudioVersion = 15.0.27130.2036
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smoll.Api.Front", "Smoll.Api.Front\Smoll.Api.Front.csproj", "{3C8C3905-6214-433B-9802-479EA407F9B3}"
 EndProject
@@ -19,9 +19,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smoll.Data.Couch", "Smoll.D
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smoll.Api.Back.Tests", "Smoll.Api.Back.Tests\Smoll.Api.Back.Tests.csproj", "{2E80B391-BA2C-47D1-AE63-C01A9126A07C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Smoll.Api.Front.Tests", "Smoll.Api.Front.Tests\Smoll.Api.Front.Tests.csproj", "{5C025CC3-2F41-4FDB-A879-05A589E53115}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smoll.Api.Front.Tests", "Smoll.Api.Front.Tests\Smoll.Api.Front.Tests.csproj", "{5C025CC3-2F41-4FDB-A879-05A589E53115}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Smoll.Api.Common.Tests", "Smoll.Api.Common.Tests\Smoll.Api.Common.Tests.csproj", "{4A4C4136-EF90-41CE-9384-8BF09F95B043}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smoll.Api.Common.Tests", "Smoll.Api.Common.Tests\Smoll.Api.Common.Tests.csproj", "{4A4C4136-EF90-41CE-9384-8BF09F95B043}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Smoll.Clients.Back", "Smoll.Clients.Back\Smoll.Clients.Back.csproj", "{60310685-83DD-4CD4-B450-4E2FD90C9F2C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -69,6 +71,10 @@ Global
 		{4A4C4136-EF90-41CE-9384-8BF09F95B043}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4A4C4136-EF90-41CE-9384-8BF09F95B043}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4A4C4136-EF90-41CE-9384-8BF09F95B043}.Release|Any CPU.Build.0 = Release|Any CPU
+		{60310685-83DD-4CD4-B450-4E2FD90C9F2C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{60310685-83DD-4CD4-B450-4E2FD90C9F2C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{60310685-83DD-4CD4-B450-4E2FD90C9F2C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{60310685-83DD-4CD4-B450-4E2FD90C9F2C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

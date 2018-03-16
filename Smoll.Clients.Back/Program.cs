@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
 
-namespace Smoll.Api.Back
+namespace Smoll.Clients.Back
 {
     public class Program
     {
@@ -13,8 +13,6 @@ namespace Smoll.Api.Back
         public static IWebHost BuildWebHost(string[] args) =>
             WebHost.CreateDefaultBuilder(args)
                 .UseStartup<Startup>()
-                //.UseKestrel()
-                //.UseUrls("http://smoll")
                 .Build();
     }
 }
