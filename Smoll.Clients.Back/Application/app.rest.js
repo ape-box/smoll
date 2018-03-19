@@ -15,7 +15,12 @@
                     url: resourceUrl,
                     config: function(xhr) { xhr.withCredentials = false; }
                 })
-                .then(callback);
+                .then(callback)
+                .catch(function (response) {
+                    if (response.code !== 200 || response.response.Status !== "OK") {
+                        alert(response.response.Errors.join("\r\n"));
+                    }
+                });
         },
         post: function (resourceUrl, resource, callback) {
             if (typeof (resourceUrl) !== "string") {
@@ -31,7 +36,12 @@
                 data: resource,
                 config: function(xhr) { xhr.withCredentials = false; }
             })
-            .then(callback);
+                .then(callback)
+                .catch(function (response) {
+                    if (response.code !== 200 || response.response.Status !== "OK") {
+                        alert(response.response.Errors.join("\r\n"));
+                    }
+                });
         },
         put: function (resourceUrl, resource, callback) {
             if (typeof (resourceUrl) !== "string") {
@@ -47,7 +57,12 @@
                 data: resource,
                 config: function(xhr) { xhr.withCredentials = false; }
             })
-            .then(callback);
+                .then(callback)
+                .catch(function (response) {
+                    if (response.code !== 200 || response.response.Status !== "OK") {
+                        alert(response.response.Errors.join("\r\n"));
+                    }
+                });
         }
     };
 

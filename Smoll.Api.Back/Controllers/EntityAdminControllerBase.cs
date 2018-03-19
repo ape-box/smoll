@@ -1,9 +1,11 @@
 ﻿using System;
+using System.Net;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Smoll.Api.Back.Models;
-using Smoll.Data.Entities;
 using Smoll.Api.Common.Controllers.Extensions;
+using Smoll.Api.Common.Controllers.Models;
+using Smoll.Data.Entities;
 
 namespace Smoll.Api.Back.Controllers
 {
@@ -17,6 +19,14 @@ namespace Smoll.Api.Back.Controllers
         {
             Repository = repository ?? throw new ArgumentNullException(nameof(repository));
         }
+
+        protected new ActionResult Ok(object value)
+            => base.Ok(new ResponseWrapperModel
+                {
+                    Status = Enum.GetName(typeof(HttpStatusCode), HttpStatusCode.OK),
+                    Errors = new String[0],
+                    Data = value
+                });
 
         [HttpGet]
         public async Task<IActionResult> Get(int? pageNumber, int? pageSize)

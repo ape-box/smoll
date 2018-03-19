@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Smoll.Api.Back.Models;
 using Smoll.Api.Back.Tests.Controllers.Support;
+using Smoll.Api.Common.Controllers.Models;
 using Xunit;
 
 namespace Smoll.Api.Back.Tests.Controllers
@@ -38,8 +39,12 @@ namespace Smoll.Api.Back.Tests.Controllers
             }
         }
 
+        private T GetResponseValue<T>(object response)
+            where T : class
+            => ((response as OkObjectResult)?.Value as ResponseWrapperModel)?.Data as T;
+
         [Fact]
-        public async Task EntityAdminControllerBase_SupportsResourceIndex()
+        public async Task EntityAdminControllerBase_ResponserWrapper()
         {
             var repoMock = new Mock<IAdminRepository>();
             var controller = new TestController(repoMock.Object);
@@ -47,7 +52,18 @@ namespace Smoll.Api.Back.Tests.Controllers
             var response = await controller.Get(null, null);
 
             Assert.IsType<OkObjectResult>(response);
-            Assert.IsAssignableFrom<IEnumerable<TestEntity>>((response as OkObjectResult)?.Value);
+            Assert.IsAssignableFrom<ResponseWrapperModel>((response as OkObjectResult)?.Value);
+        }
+
+        [Fact]
+        public async Task EntityAdminControllerBase_SupportsResourceIndex()
+        {
+            var repoMock = new Mock<IAdminRepository>();
+            var controller = new TestController(repoMock.Object);
+
+            var response = (await controller.Get(null, null) as OkObjectResult)?.Value as ResponseWrapperModel;
+
+            Assert.IsAssignableFrom<IEnumerable<TestEntity>>(response?.Data);
         }
 
         [Fact]
@@ -56,8 +72,7 @@ namespace Smoll.Api.Back.Tests.Controllers
             var repoMock = AdminRepoPaged;
             var controller = new TestController(repoMock.Object);
 
-            var response = await controller.Get(null, null);
-            var values = (response as OkObjectResult)?.Value as IEnumerable<TestEntity>;
+            var values = GetResponseValue<IEnumerable<TestEntity>>(await controller.Get(null, null));
 
             Assert.Equal(DefaultTestEntitySet.Take(5), values);
             repoMock.VerifyAll();
@@ -69,10 +84,9 @@ namespace Smoll.Api.Back.Tests.Controllers
             var repoMock = AdminRepoPaged;
             var controller = new TestController(repoMock.Object);
 
-            var response = await controller.Get(1, 5);
-            var values = ((response as OkObjectResult)?.Value as IEnumerable<TestEntity>)?.ToArray();
+            var values = GetResponseValue<IEnumerable<TestEntity>>(await controller.Get(1, 5))?.ToArray();
 
-            Assert.Equal(5, values?.Count());
+            Assert.Equal(5, values?.Length);
             Assert.Equal(DefaultTestEntitySet.Take(5), values);
         }
 
@@ -87,11 +101,32 @@ namespace Smoll.Api.Back.Tests.Controllers
             var repoMock = AdminRepoPaged;
             var controller = new TestController(repoMock.Object);
 
-            var response = await controller.Get(page, size);
-            var values = ((response as OkObjectResult)?.Value as IEnumerable<TestEntity>)?.ToArray();
+            var values = GetResponseValue<IEnumerable<TestEntity>>(await controller.Get(page, size))?.ToArray();
 
-            Assert.Equal(5, values?.Count());
+            Assert.Equal(5, values?.Length);
             Assert.Equal(DefaultTestEntitySet.Take(5), values);
+        }
+
+        [Fact]
+        public async Task EntityAdminControllerBase_Create_ResponserWrapper()
+        {
+            var storage = new List<TestEntity>();
+            var entity = DefaultTestEntitySet.Last();
+            var repoMock = new Mock<IAdminRepository>();
+            repoMock
+                .Setup(t => t.Create<TestEntity>(entity, It.IsAny<string>()))
+                .Callback<TestEntity, string>((t, _) => storage.Add(t))
+                .Returns<TestEntity, string>((t, _) => repoMock.Object);
+            repoMock
+                .Setup(t => t.SaveAsync())
+                .Returns(Task.FromResult(1));
+
+            var controller = new TestController(repoMock.Object);
+
+            var response = await controller.Post(entity);
+
+            Assert.IsType<OkObjectResult>(response);
+            Assert.IsAssignableFrom<ResponseWrapperModel>((response as OkObjectResult)?.Value);
         }
 
         [Fact]
@@ -110,8 +145,8 @@ namespace Smoll.Api.Back.Tests.Controllers
 
             var controller = new TestController(repoMock.Object);
 
-            var response = await controller.Post(entity);
-            var value = (response as OkObjectResult)?.Value as int?;
+            var response = (await controller.Post(entity) as OkObjectResult)?.Value as ResponseWrapperModel;
+            var value = response?.Data as int?;
 
             Assert.Equal(1, value);
             Assert.Equal(entity, storage.FirstOrDefault());
@@ -128,8 +163,7 @@ namespace Smoll.Api.Back.Tests.Controllers
             var controller = new TestController(repoMock.Object);
             var entity = DefaultTestEntitySet.Last();
 
-            var response = await controller.Get(entity.Id);
-            var value = (response as OkObjectResult)?.Value as TestEntity;
+            var value = GetResponseValue<TestEntity>(await controller.Get(entity.Id));
 
             Assert.Equal(entity, value);
         }
@@ -147,8 +181,8 @@ namespace Smoll.Api.Back.Tests.Controllers
 
             var controller = new TestController(repoMock.Object);
 
-            var response = await controller.Put(Guid.NewGuid(), default(TestEntity));
-            var value = (response as OkObjectResult)?.Value as int?;
+            var response = await controller.Put(Guid.NewGuid(), default) as OkObjectResult;
+            var value = (response?.Value as ResponseWrapperModel)?.Data as int?;
 
             Assert.Equal(1, value);
             repoMock.VerifyAll();
@@ -167,8 +201,8 @@ namespace Smoll.Api.Back.Tests.Controllers
 
             var controller = new TestController(repoMock.Object);
 
-            var response = await controller.Delete(Guid.NewGuid());
-            var value = (response as OkObjectResult)?.Value as int?;
+            var response = await controller.Delete(Guid.NewGuid()) as OkObjectResult;
+            var value = (response?.Value as ResponseWrapperModel)?.Data as int?;
 
             Assert.Equal(1, value);
             repoMock.VerifyAll();

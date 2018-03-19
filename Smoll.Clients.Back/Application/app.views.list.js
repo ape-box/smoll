@@ -44,7 +44,18 @@
             var resourcesList = [];
             return {
                 oninit: function() {
-                    return rest.get(api.getFullUrl(resourceDef.baseUrl), function (items) { resourcesList = items; });
+                    return rest.get(api.getFullUrl(resourceDef.baseUrl), function (response) {
+                        if (response.Status === "OK") {
+                            resourcesList = response.Data;
+                        }
+                        else if (response.Errors instanceof Array) {
+                            alert(response.Errors.join("\r\n"));
+                        }
+                        else {
+                            console.error(response.Status);
+                            console.log(response);
+                        }
+                    });
                 },
                 view: function() {
                     var rows = resourcesList.map(listRowViewFn(resourceDef.router, resourceDef.baseUrl));

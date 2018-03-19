@@ -139,7 +139,12 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
                     url: resourceUrl,
                     config: function(xhr) { xhr.withCredentials = false; }
                 })
-                .then(callback);
+                .then(callback)
+                .catch(function (response) {
+                    if (response.code !== 200 || response.response.Status !== "OK") {
+                        alert(response.response.Errors.join("\r\n"));
+                    }
+                });
         },
         post: function (resourceUrl, resource, callback) {
             if (typeof (resourceUrl) !== "string") {
@@ -155,7 +160,12 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
                 data: resource,
                 config: function(xhr) { xhr.withCredentials = false; }
             })
-            .then(callback);
+                .then(callback)
+                .catch(function (response) {
+                    if (response.code !== 200 || response.response.Status !== "OK") {
+                        alert(response.response.Errors.join("\r\n"));
+                    }
+                });
         },
         put: function (resourceUrl, resource, callback) {
             if (typeof (resourceUrl) !== "string") {
@@ -171,7 +181,12 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
                 data: resource,
                 config: function(xhr) { xhr.withCredentials = false; }
             })
-            .then(callback);
+                .then(callback)
+                .catch(function (response) {
+                    if (response.code !== 200 || response.response.Status !== "OK") {
+                        alert(response.response.Errors.join("\r\n"));
+                    }
+                });
         }
     };
 
@@ -442,7 +457,18 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
             var resourcesList = [];
             return {
                 oninit: function() {
-                    return rest.get(api.getFullUrl(resourceDef.baseUrl), function (items) { resourcesList = items; });
+                    return rest.get(api.getFullUrl(resourceDef.baseUrl), function (response) {
+                        if (response.Status === "OK") {
+                            resourcesList = response.Data;
+                        }
+                        else if (response.Errors instanceof Array) {
+                            alert(response.Errors.join("\r\n"));
+                        }
+                        else {
+                            console.error(response.Status);
+                            console.log(response);
+                        }
+                    });
                 },
                 view: function() {
                     var rows = resourcesList.map(listRowViewFn(resourceDef.router, resourceDef.baseUrl));
@@ -475,7 +501,18 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
             var resourceId = args.attrs.id;
             return {
                 oninit: function () {
-                    return rest.get(api.getFullUrl(resourceDef.baseUrl, resourceId), function (data) { resource = data; });
+                    return rest.get(api.getFullUrl(resourceDef.baseUrl, resourceId), function (response) {
+                        if (response.Status === "OK") {
+                            resource = response.Data;
+                        }
+                        else if (response.Errors instanceof Array) {
+                            alert(response.Errors.join("\r\n"));
+                        }
+                        else {
+                            console.error(response.Status);
+                            console.log(response);
+                        }
+                    });
                 },
                 view: function () {
                     return m("div", { "id": resourceDef.name, "class": "editView" }, [

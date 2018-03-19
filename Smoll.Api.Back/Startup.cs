@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Smoll.Api.Back.Models;
+using Smoll.Api.Common.Controllers;
 using Smoll.Api.Common.Controllers.Models.Validation;
 //using Smoll.Messages.Brokers;
 
@@ -42,7 +43,10 @@ namespace Smoll.Api.Back
             });
 
             void ConfigureMVC(MvcOptions options)
-                => options.Filters.Add(typeof(ValidateModelAttribute));
+            {
+                options.Filters.Add(typeof(ErrorHandler));
+                options.Filters.Add(typeof(ValidateModelAttribute));
+            }
 
             void ConfigureValidators(FluentValidationMvcConfiguration config)
                 => config.RegisterValidatorsFromAssemblyContaining<Startup>();
@@ -80,7 +84,7 @@ namespace Smoll.Api.Back
         {
             if (env.IsDevelopment())
             {
-                app.UseDeveloperExceptionPage();
+                //app.UseDeveloperExceptionPage();
                 app.UseCors("AllowAllOrigins");
             }
             else

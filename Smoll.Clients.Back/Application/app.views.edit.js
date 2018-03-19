@@ -14,7 +14,18 @@
             var resourceId = args.attrs.id;
             return {
                 oninit: function () {
-                    return rest.get(api.getFullUrl(resourceDef.baseUrl, resourceId), function (data) { resource = data; });
+                    return rest.get(api.getFullUrl(resourceDef.baseUrl, resourceId), function (response) {
+                        if (response.Status === "OK") {
+                            resource = response.Data;
+                        }
+                        else if (response.Errors instanceof Array) {
+                            alert(response.Errors.join("\r\n"));
+                        }
+                        else {
+                            console.error(response.Status);
+                            console.log(response);
+                        }
+                    });
                 },
                 view: function () {
                     return m("div", { "id": resourceDef.name, "class": "editView" }, [
