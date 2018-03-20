@@ -458,14 +458,14 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
             return {
                 oninit: function() {
                     return rest.get(api.getFullUrl(resourceDef.baseUrl), function (response) {
-                        if (response.Status === "OK") {
-                            resourcesList = response.Data;
+                        if (response.status === "OK") {
+                            resourcesList = response.data;
                         }
-                        else if (response.Errors instanceof Array) {
-                            alert(response.Errors.join("\r\n"));
+                        else if (response.errors instanceof Array) {
+                            alert(response.errors.join("\r\n"));
                         }
                         else {
-                            console.error(response.Status);
+                            console.error(response.status);
                             console.log(response);
                         }
                     });
@@ -502,14 +502,14 @@ L);x.withAttr=function(a,d,e){return function(h){d.call(e||this,a in h.currentTa
             return {
                 oninit: function () {
                     return rest.get(api.getFullUrl(resourceDef.baseUrl, resourceId), function (response) {
-                        if (response.Status === "OK") {
-                            resource = response.Data;
+                        if (response.status === "OK") {
+                            resource = response.data;
                         }
-                        else if (response.Errors instanceof Array) {
-                            alert(response.Errors.join("\r\n"));
+                        else if (response.errors instanceof Array) {
+                            alert(response.errors.join("\r\n"));
                         }
                         else {
-                            console.error(response.Status);
+                            console.error(response.status);
                             console.log(response);
                         }
                     });

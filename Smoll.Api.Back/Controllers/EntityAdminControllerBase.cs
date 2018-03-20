@@ -10,7 +10,8 @@ using Smoll.Data.Entities;
 namespace Smoll.Api.Back.Controllers
 {
     [Route("api/v1/[controller]")]
-    public abstract class EntityAdminControllerBase<TEntity> : Controller
+    public abstract class EntityAdminControllerBase<TEntity> : ControllerBase
+        //public abstract class EntityAdminControllerBase<TEntity> : Controller
         where TEntity : class, IPublicationEntity
     {
         protected readonly IAdminRepository Repository;

@@ -10,7 +10,7 @@ namespace Smoll.Api.Common.Controllers.Extensions
         public const int DefaultPageNumber = 1;
         public const int DefaultPageSize = 5;
 
-        public static (int pageNumber, int pageSize) RestrictPagination(this Controller controller, int? pageNumber, int? pageSize)
+        public static (int pageNumber, int pageSize) RestrictPagination(this ControllerBase controller, int? pageNumber, int? pageSize)
         {
             if (!pageNumber.HasValue || pageNumber.Value < MinPageNumber)
             {

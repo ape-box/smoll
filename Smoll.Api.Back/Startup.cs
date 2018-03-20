@@ -30,6 +30,26 @@ namespace Smoll.Api.Back
 
         private void InitializeMVC(IServiceCollection services)
         {
+            void ConfigureMVC(MvcOptions options)
+            {
+                options.Filters.Add(typeof(ErrorHandler));
+                options.Filters.Add(typeof(ValidateModelAttribute));
+            }
+
+            void ConfigureValidators(FluentValidationMvcConfiguration config)
+                => config.RegisterValidatorsFromAssemblyContaining<Startup>();
+
+            // https://offering.solutions/blog/articles/2017/02/07/difference-between-addmvc-addmvcore/
+            services.AddMvc(ConfigureMVC)
+                .AddFluentValidation(ConfigureValidators);
+            //services.AddMvcCore(ConfigureMVC)
+            //    .AddAuthorization()
+            //    .AddFluentValidation(ConfigureValidators)
+            //    .AddJsonFormatters();
+        }
+
+        private void InitializeMVCSecurity(IServiceCollection services)
+        {
             services.AddCors(options =>
             {
                 //options.AddPolicy("AllowSpecificOrigin",
@@ -42,17 +62,13 @@ namespace Smoll.Api.Back
                .AllowAnyMethod();*/
             });
 
-            void ConfigureMVC(MvcOptions options)
-            {
-                options.Filters.Add(typeof(ErrorHandler));
-                options.Filters.Add(typeof(ValidateModelAttribute));
-            }
-
-            void ConfigureValidators(FluentValidationMvcConfiguration config)
-                => config.RegisterValidatorsFromAssemblyContaining<Startup>();
-
-            services.AddMvc(ConfigureMVC)
-                .AddFluentValidation(ConfigureValidators);
+            services.AddAuthentication("Bearer")
+                .AddIdentityServerAuthentication(options =>
+                {
+                    options.Authority = "http://localhost:53052";
+                    options.RequireHttpsMetadata = false;
+                    options.ApiName = "backend";
+                });
         }
 
         private void InitializeDatabase(IServiceCollection services)
@@ -76,6 +92,8 @@ namespace Smoll.Api.Back
 
             InitializeMVC(services);
 
+            InitializeMVCSecurity(services);
+
             InitializeDatabase(services);
         }
 
@@ -92,6 +110,7 @@ namespace Smoll.Api.Back
                 app.UseCors("AllowSpecificOrigin");
             }
 
+            app.UseAuthentication();
             app.UseMvc();
         }
     }
